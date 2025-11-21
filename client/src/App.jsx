@@ -1,35 +1,192 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  NavLink,
+} from "react-router-dom";
+import "./App.css";
+
+import HomePage from "./pages/HomePage.jsx";
+import CalendarPage from "./pages/CalendarPage.jsx";
+import PetPage from "./pages/PetPage.jsx";
+import ShopPage from "./pages/ShopPage.jsx";
+
+const API_BASE = "http://localhost:5000"; // your Express backend
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [tasks, setTasks] = useState([]);
+  const [loadingTasks, setLoadingTasks] = useState(true);
+  const [taskError, setTaskError] = useState("");
+
+  // GET all tasks
+  async function fetchTasks() {
+    try {
+      setLoadingTasks(true);
+      setTaskError("");
+      const res = await fetch(`${API_BASE}/api/tasks`);
+      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      const data = await res.json();
+      setTasks(data);
+    } catch (err) {
+      console.error(err);
+      setTaskError("Failed to load tasks. Is the server running?");
+    } finally {
+      setLoadingTasks(false);
+    }
+  }
+
+  // POST create task
+  async function createTask(payload) {
+    try {
+      setTaskError("");
+      const res = await fetch(`${API_BASE}/api/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || `Request failed: ${res.status}`);
+      }
+      const newTask = await res.json();
+      setTasks((prev) => [newTask, ...prev]);
+    } catch (err) {
+      console.error(err);
+      setTaskError(err.message || "Failed to create task.");
+    }
+  }
+
+  // PUT update task (toggle complete etc.)
+  async function updateTask(id, updates) {
+    try {
+      const res = await fetch(`${API_BASE}/api/tasks/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (!res.ok) throw new Error(`Update failed: ${res.status}`);
+      const updated = await res.json();
+      setTasks((prev) => prev.map((t) => (t._id === id ? updated : t)));
+    } catch (err) {
+      console.error(err);
+      setTaskError(err.message || "Failed to update task.");
+    }
+  }
+
+  // DELETE task
+  async function deleteTask(id) {
+    try {
+      const res = await fetch(`${API_BASE}/api/tasks/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
+      setTasks((prev) => prev.filter((t) => t._id !== id));
+    } catch (err) {
+      console.error(err);
+      setTaskError(err.message || "Failed to delete task.");
+    }
+  }
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <Router>
+      <div className="app">
+        <Header />
+
+        <div className="layout">
+          <Nav />
+
+          <main className="main">
+            <Routes>
+              {/* Default route → Home */}
+              <Route
+                path="/"
+                element={
+                  <HomePage
+                    tasks={tasks}
+                    loading={loadingTasks}
+                    error={taskError}
+                    onRefresh={fetchTasks}
+                    onCreateTask={createTask}
+                    onUpdateTask={updateTask}
+                    onDeleteTask={deleteTask}
+                  />
+                }
+              />
+              <Route
+                path="/home"
+                element={
+                  <HomePage
+                    tasks={tasks}
+                    loading={loadingTasks}
+                    error={taskError}
+                    onRefresh={fetchTasks}
+                    onCreateTask={createTask}
+                    onUpdateTask={updateTask}
+                    onDeleteTask={deleteTask}
+                  />
+                }
+              />
+              <Route
+                path="/calendar"
+                element={<CalendarPage tasks={tasks} loading={loadingTasks} />}
+              />
+              <Route path="/pet" element={<PetPage />} />
+              <Route path="/shop" element={<ShopPage />} />
+            </Routes>
+          </main>
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </Router>
+  );
 }
 
-export default App
+/* --- Layout components --- */
+
+function Header() {
+  return (
+    <header className="header">
+      <h1>Task Buddy</h1>
+      <p className="header-subtitle">
+        Planner + virtual pet motivation system.
+      </p>
+    </header>
+  );
+}
+
+function Nav() {
+  return (
+    <nav className="nav">
+      <NavLink
+        to="/home"
+        className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+      >
+        Home
+      </NavLink>
+      <NavLink
+        to="/calendar"
+        className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+      >
+        Calendar
+      </NavLink>
+      <NavLink
+        to="/pet"
+        className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+      >
+        Pet
+      </NavLink>
+      <NavLink
+        to="/shop"
+        className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+      >
+        Shop
+      </NavLink>
+    </nav>
+  );
+}
+
+export default App;
