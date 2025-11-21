@@ -1,14 +1,13 @@
-// server/config/db.js
 const mongoose = require("mongoose");
 
-async function connectDB() {
-  try {
-    await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/task-buddy");
-    console.log("✅ MongoDB connected");
-  } catch (err) {
-    console.error("❌ MongoDB connection error:", err.message);
-    process.exit(1);
-  }
-}
+const taskSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
+    description: String,
+    deadline: Date,
+    completed: { type: Boolean, default: false },
+  },
+  { timestamps: true }
+);
 
-module.exports = connectDB;
+module.exports = mongoose.model("Task", taskSchema);
