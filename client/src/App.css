@@ -240,19 +240,35 @@ textarea {
 
 .calendar-card {
   padding: 0.75rem 1rem 1rem;
+  min-height: 480px; /* gives the grid some vertical space */
 }
 
-.calendar-header {
+/* compact top bar for month + buttons */
+.calendar-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  gap: 0.75rem;
+}
+
+.calendar-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.calendar-toolbar-right {
+  font-size: 0.75rem;
+  color: #9ca3af;
 }
 
 .calendar-month-label {
   font-weight: 600;
   font-size: 1rem;
 }
+
+/* weekdays row */
 
 .calendar-weekdays {
   display: grid;
@@ -267,15 +283,17 @@ textarea {
   padding: 0.25rem 0;
 }
 
+/* main grid */
+
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 0.15rem;
+  gap: 0.2rem;
   font-size: 0.8rem;
 }
 
 .calendar-cell {
-  min-height: 72px;
+  min-height: 90px; /* bigger cells */
   border-radius: 0.5rem;
   border: 1px solid #1f2937;
   padding: 0.25rem 0.35rem;
@@ -293,10 +311,17 @@ textarea {
   color: #9ca3af;
 }
 
+/* tasks inside each day */
+
 .calendar-cell-tasks {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-height: 72px;        /* if lots of tasks, scroll instead of overflowing */
+  overflow-y: auto;
 }
 
 .calendar-cell-tasks li {
