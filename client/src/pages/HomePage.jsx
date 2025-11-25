@@ -93,12 +93,12 @@ function HomePage({
               ×
             </button>
             
-            <h3 className="text-2xl font-bold text-primary mb-6">Create Task</h3>
+            <h3 className="text-2xl font-bold text-dark mb-6">Create Task</h3>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-text-dark mb-2">
-                  Title <span className="text-accent">*</span>
+                  Title <span className="text-dar">*</span>
                 </label>
                 <input
                   type="text"
