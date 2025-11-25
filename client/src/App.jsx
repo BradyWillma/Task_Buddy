@@ -3,7 +3,6 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  NavLink,
 } from "react-router-dom";
 import "./App.css";
 
@@ -11,8 +10,9 @@ import HomePage from "./pages/HomePage.jsx";
 import CalendarPage from "./pages/CalendarPage.jsx";
 import PetPage from "./pages/PetPage.jsx";
 import ShopPage from "./pages/ShopPage.jsx";
+import Navbar from "./components/Navbar";
 
-const API_BASE = "http://localhost:5000"; // your Express backend
+const API_BASE = "http://localhost:5000";
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -94,98 +94,47 @@ function App() {
 
   return (
     <Router>
-      <div className="app">
-        <Header />
+      <div className="min-h-screen">
+        <Navbar />
 
-        <div className="layout">
-          <Nav />
-
-          <main className="main">
-            <Routes>
-              {/* Default route → Home */}
-              <Route
-                path="/"
-                element={
-                  <HomePage
-                    tasks={tasks}
-                    loading={loadingTasks}
-                    error={taskError}
-                    onRefresh={fetchTasks}
-                    onCreateTask={createTask}
-                    onUpdateTask={updateTask}
-                    onDeleteTask={deleteTask}
-                  />
-                }
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <HomePage
+                tasks={tasks}
+                loading={loadingTasks}
+                error={taskError}
+                onRefresh={fetchTasks}
+                onCreateTask={createTask}
+                onUpdateTask={updateTask}
+                onDeleteTask={deleteTask}
               />
-              <Route
-                path="/home"
-                element={
-                  <HomePage
-                    tasks={tasks}
-                    loading={loadingTasks}
-                    error={taskError}
-                    onRefresh={fetchTasks}
-                    onCreateTask={createTask}
-                    onUpdateTask={updateTask}
-                    onDeleteTask={deleteTask}
-                  />
-                }
+            }
+          />
+          <Route
+            path="/home"
+            element={
+              <HomePage
+                tasks={tasks}
+                loading={loadingTasks}
+                error={taskError}
+                onRefresh={fetchTasks}
+                onCreateTask={createTask}
+                onUpdateTask={updateTask}
+                onDeleteTask={deleteTask}
               />
-              <Route
-                path="/calendar"
-                element={<CalendarPage tasks={tasks} loading={loadingTasks} />}
-              />
-              <Route path="/pet" element={<PetPage />} />
-              <Route path="/shop" element={<ShopPage />} />
-            </Routes>
-          </main>
-        </div>
+            }
+          />
+          <Route
+            path="/calendar"
+            element={<CalendarPage tasks={tasks} loading={loadingTasks} />}
+          />
+          <Route path="/pet" element={<PetPage />} />
+          <Route path="/shop" element={<ShopPage />} />
+        </Routes>
       </div>
     </Router>
-  );
-}
-
-/* --- Layout components --- */
-
-function Header() {
-  return (
-    <header className="header">
-      <h1>Task Buddy</h1>
-      <p className="header-subtitle">
-        Planner + virtual pet motivation system.
-      </p>
-    </header>
-  );
-}
-
-function Nav() {
-  return (
-    <nav className="nav">
-      <NavLink
-        to="/home"
-        className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-      >
-        Home
-      </NavLink>
-      <NavLink
-        to="/calendar"
-        className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-      >
-        Calendar
-      </NavLink>
-      <NavLink
-        to="/pet"
-        className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-      >
-        Pet
-      </NavLink>
-      <NavLink
-        to="/shop"
-        className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-      >
-        Shop
-      </NavLink>
-    </nav>
   );
 }
 
