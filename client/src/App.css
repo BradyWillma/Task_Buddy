@@ -349,3 +349,7 @@ textarea {
 .calendar-cell-more {
   color: var(--text-light);
 }
+
+.coin-icon {
+  width: 30px;
+}
