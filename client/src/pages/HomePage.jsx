@@ -279,7 +279,7 @@ function HomePage({
                 {tasks.map((task) => (
                   <div
                     key={task._id}
-                    className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${
+                    className={`flex items-center gap-4 p-4 rounded-lg shadow-[0_3px_2px_#c9c5bf] transition-all ${
                       task.completed
                         ? "bg-accent/10 border-accent"
                         : "bg-bg border-primary-light hover:border-primary"
