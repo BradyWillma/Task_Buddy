@@ -1,4 +1,6 @@
-import { useState, useMemo } from "react";
+// client/src/pages/ShopPage.jsx
+import { useState, useMemo, useEffect } from "react";
+import { userAPI } from "../services/api";
 
 const ALL_ITEMS = [
   {
@@ -70,26 +72,94 @@ const ALL_ITEMS = [
 const CATEGORIES = ["All", "Clothes", "Food", "Accessories", "Backgrounds"];
 
 export default function ShopPage() {
-  const [coins, setCoins] = useState(600);
-  const [ownedItemIds, setOwnedItemIds] = useState([]);
+  const [inventory, setInventory] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const [purchaseMessage, setPurchaseMessage] = useState("");
+
+  // Fetches inventory on mount
+  useEffect(() => {
+    fetchInventory();
+  }, []);
+
+  const fetchInventory = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const response = await userAPI.getInventory();
+      setInventory(response.data.inventory);
+    } catch (err) {
+      console.error("Error fetching inventory:", err);
+      setError("Failed to load inventory");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredItems = useMemo(() => {
     if (activeCategory === "All") return ALL_ITEMS;
     return ALL_ITEMS.filter((item) => item.category === activeCategory);
   }, [activeCategory]);
 
-  function handleBuy(item) {
-    if (ownedItemIds.includes(item.id)) return;
-    if (coins < item.price) return;
+  const handleBuy = async (item) => {
+    // Check if already owned
+    if (isOwned(item)) {
+      setPurchaseMessage("You already own this item!");
+      setTimeout(() => setPurchaseMessage(""), 2000);
+      return;
+    }
 
-    setCoins((prev) => prev - item.price);
-    setOwnedItemIds((prev) => [...prev, item.id]);
-  }
+    // Check if enough coins
+    if (inventory.coins < item.price) {
+      setPurchaseMessage("Not enough coins!");
+      setTimeout(() => setPurchaseMessage(""), 2000);
+      return;
+    }
 
-  function isOwned(item) {
-    return ownedItemIds.includes(item.id);
-  }
+    try {
+      setError("");
+      
+      // Deduct coins
+      await userAPI.updateCoins(-item.price);
+      
+      // Add item to inventory
+      await userAPI.addItem({
+        itemId: item.id,
+        name: item.name,
+        quantity: 1,
+        type: item.category,
+      });
+
+      // Update local state
+      setInventory((prev) => ({
+        ...prev,
+        coins: prev.coins - item.price,
+        items: [
+          ...prev.items,
+          {
+            itemId: item.id,
+            name: item.name,
+            quantity: 1,
+            type: item.category,
+          },
+        ],
+      }));
+
+      setPurchaseMessage(`✅ Purchased ${item.name}!`);
+      setTimeout(() => setPurchaseMessage(""), 2000);
+    } catch (err) {
+      console.error("Error purchasing item:", err);
+      setError("Failed to purchase item");
+      setPurchaseMessage("Purchase failed!");
+      setTimeout(() => setPurchaseMessage(""), 2000);
+    }
+  };
+
+  const isOwned = (item) => {
+    if (!inventory) return false;
+    return inventory.items.some((invItem) => invItem.itemId === item.id);
+  };
 
   function rarityTagColor(rarity) {
     switch (rarity) {
@@ -102,10 +172,19 @@ export default function ShopPage() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="bg-bg min-h-screen px-4 py-8">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-center">Loading shop...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-bg min-h-screen px-4 py-8">
       <div className="max-w-5xl mx-auto">
-
         {/* SHOP HEADER */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -116,15 +195,16 @@ export default function ShopPage() {
           </div>
 
           <div className="flex items-center gap-6">
-
             {/* COIN DISPLAY */}
             <div className="flex items-center gap-2 bg-bg-card border border-primary-light px-3 py-1.5 rounded-full shadow-sm">
-                <img 
-                  src="/src/images/Coins.png"
-                  alt="Coins"
-                  className="coin-icon"
-                />
-              <span className="text-dark font-semibold text-sm">{coins}</span>
+              <img
+                src="/src/images/Coins.png"
+                alt="Coins"
+                className="coin-icon"
+              />
+              <span className="text-dark font-semibold text-sm">
+                {inventory?.coins || 0}
+              </span>
             </div>
 
             {/* PET PREVIEW */}
@@ -134,12 +214,27 @@ export default function ShopPage() {
               </div>
               <div>
                 <p className="text-dark text-sm font-semibold">Your Pet</p>
-                <p className="text-light text-xs">Equipped items preview</p>
+                <p className="text-light text-xs">
+                  {inventory?.items.length || 0} items owned
+                </p>
               </div>
             </div>
-
           </div>
         </div>
+
+        {/* PURCHASE MESSAGE */}
+        {purchaseMessage && (
+          <div className="mb-4 text-center py-2 px-4 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg">
+            {purchaseMessage}
+          </div>
+        )}
+
+        {/* ERROR MESSAGE */}
+        {error && (
+          <div className="mb-4 text-center py-2 px-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            {error}
+          </div>
+        )}
 
         {/* CATEGORY FILTERS */}
         <div className="flex flex-wrap gap-3 mb-6">
@@ -166,7 +261,7 @@ export default function ShopPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredItems.map((item) => {
             const owned = isOwned(item);
-            const notEnough = coins < item.price;
+            const notEnough = (inventory?.coins || 0) < item.price;
 
             return (
               <div
@@ -177,7 +272,9 @@ export default function ShopPage() {
                   <img src={item.image} alt={item.name} className="w-16 h-16" />
                 </div>
 
-                <h3 className="text-dark font-semibold text-sm text-center">{item.name}</h3>
+                <h3 className="text-dark font-semibold text-sm text-center">
+                  {item.name}
+                </h3>
                 <p className="text-light text-xs">{item.category}</p>
 
                 <span
@@ -190,7 +287,11 @@ export default function ShopPage() {
                 </span>
 
                 <div className="flex items-center gap-1 mt-2 text-dark text-sm">
-                  <img src="/src/images/Coins.png" alt="Coin" className="coin-icon" />
+                  <img
+                    src="/src/images/Coins.png"
+                    alt="Coin"
+                    className="coin-icon"
+                  />
                   <span>{item.price}</span>
                 </div>
 
@@ -212,7 +313,6 @@ export default function ShopPage() {
             );
           })}
         </div>
-
       </div>
     </div>
   );
