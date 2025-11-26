@@ -308,28 +308,15 @@ export default function ShopPage() {
 
           <div className="flex items-center gap-6">
             {/* COIN DISPLAY */}
-            <div className="flex items-center gap-2 bg-bg-card border border-primary-light px-3 py-1.5 rounded-full shadow-sm">
+            <div className="flex items-center gap-2 bg-bg-card px-8 py-1.5 rounded-full shadow-[0_6px_3px_#c9c5bf]">
               <img
                 src="/src/images/Coins.png"
                 alt="Coins"
-                className="coin-icon"
+                className="coin-header-icon"
               />
-              <span className="text-dark font-semibold text-sm">
+              <span className="text-dark font-semibold text-xl">
                 {inventory?.coins || 0}
               </span>
-            </div>
-
-            {/* PET PREVIEW */}
-            <div className="flex items-center gap-3 bg-bg-card border border-primary-light px-3 py-2 rounded-xl shadow-sm">
-              <div className="w-10 h-10 flex items-center justify-center bg-bg rounded-lg">
-                <img src="/pet.png" alt="Pet" className="w-8 h-8" />
-              </div>
-              <div>
-                <p className="text-dark text-sm font-semibold">Your Pet</p>
-                <p className="text-light text-xs">
-                  {inventory?.items.length || 0} items owned
-                </p>
-              </div>
             </div>
           </div>
         </div>
@@ -378,7 +365,7 @@ export default function ShopPage() {
             return (
               <div
                 key={item.id}
-                className="bg-bg-card border border-primary-light rounded-xl p-4 shadow-sm flex flex-col items-center transition"
+                className="bg-bg-card rounded-xl p-4 shadow-[0_6px_3px_#c9c5bf] flex flex-col items-center transition"
               >
                 <div className="w-20 h-20 flex items-center justify-center mb-3 bg-bg rounded-lg overflow-hidden">
                   <img src={item.image} alt={item.name} className="w-16 h-16" />
@@ -415,7 +402,7 @@ export default function ShopPage() {
                     (owned
                       ? "bg-bg bg-primary shadow-[0_6px_0_#c9c5bf] text-dark border-primary-light hover:bg-primary-light/50 active:translate-y-0.5 shadow transition-all hover:scale-105"
                       : notEnough
-                      ? "bg-bg-card text-light border border-primary-light cursor-not-allowed opacity-70"
+                      ? "text-light border border-primary-light cursor-not-allowed"
                       : "bg-primary bg-primary shadow-[0_6px_0_#5a86c4] text-white border-primary shadow transition-all hover:scale-105 active:translate-y-0.5")
                   }
                 >

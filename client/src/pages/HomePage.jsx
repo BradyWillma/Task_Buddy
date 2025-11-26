@@ -174,13 +174,13 @@ function HomePage({
 
           {/* Progress Days */}
           {/* LINK WITH BACKEND TO TRACK USERS CURRENT COMPLETED TASKS BY DAY. DAYS SHOULD SHOW EACH DAYS OWN TASK, AND LIGHT UP GREEN IF COMPLETED, RED IF NOT, YELLOW IF TO-DO IN*/}
-          <div className="bg-bg-card rounded-2xl shadow-lg p-6 mb-6">
+          <div className="bg-bg-card rounded-2xl shadow-[0_6px_3px_#c9c5bf] p-6 mb-6">
             <h2 className="text-xl font-semibold text-text-dark mb-4">Weekly Progress</h2>
             <div className="flex justify-around items-center">
               {[1, 2, 3, 4, 5, 6, 7].map((day) => (
                 <div
                   key={day}
-                  className={`flex flex-col items-center justify-center w-40 h-30 rounded-2xl ${
+                  className={`flex flex-col items-center justify-center m-0.5 w-40 h-30 rounded-2xl shadow-[0_3px_2px_#c9c5bf] ${
                     day <= Math.ceil(stats.completedThisWeek / 2)
                       ? "bg-accent text-white"
                       : "bg-bg text-text-light"
@@ -196,7 +196,7 @@ function HomePage({
           {/* Main Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {/* Tasks Completed This Week */}
-            <div className="bg-bg-card rounded-2xl shadow-lg p-6">
+            <div className="bg-bg-card rounded-2xl p-6 shadow-[0_6px_3px_#c9c5bf]">
               <h3 className="text-lg font-semibold text-text-dark mb-4">
                 Tasks Completed
               </h3>
@@ -212,7 +212,7 @@ function HomePage({
             </div>
 
             {/* Current Streak */}
-            <div className="bg-bg-card rounded-2xl shadow-lg p-6">
+            <div className="bg-bg-card rounded-2xl shadow-[0_6px_3px_#c9c5bf] p-6">
               <h3 className="text-lg font-semibold text-text-dark mb-4">
                 Current Streak
               </h3>
@@ -228,7 +228,7 @@ function HomePage({
             </div>
 
             {/* Pet Happiness */}
-            <div className="bg-bg-card rounded-2xl shadow-lg p-6">
+            <div className="bg-bg-card rounded-2xl shadow-[0_6px_3px_#c9c5bf] p-6">
               {/* Header with title and percentage */}
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-text-dark">
@@ -241,7 +241,7 @@ function HomePage({
               
               {/* Happiness Bar */}
               <div className="mb-4">
-                <div className="w-full bg-bg rounded-full h-4">
+                <div className="w-full bg-bg rounded-full h-4 shadow-[0_3px_1px_#c9c5bf]">
                   <div
                     className="bg-accent h-4 rounded-full transition-all duration-500"
                     style={{ width: `${petHappiness}%` }}
@@ -251,14 +251,14 @@ function HomePage({
 
               {/* Pet Display Box */}
               {/* LINK USERS CURRENT EQUIPPED PET HERE. WILL USE IDLE ANIMATION (2-3 IMAGES REPEATED*/}
-              <div className="bg-bg rounded-2xl p-8 flex items-center justify-center">
+              <div className="bg-bg rounded-2xl p-8 flex items-center justify-center shadow-[0_3px_3px_#c9c5bf]">
                 <span className="text-7xl">🐱TEMP</span>
               </div>
             </div>
           </div>
 
           {/* To-Do Section */}
-          <div className="bg-bg-card rounded-2xl shadow-lg p-6">
+          <div className="bg-bg-card rounded-2xl shadow-[0_6px_3px_#c9c5bf] p-6">
             <h2 className="text-2xl font-semibold text-text-dark mb-4">To-Do</h2>
 
             {error && (

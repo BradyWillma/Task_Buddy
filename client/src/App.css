@@ -354,3 +354,9 @@ textarea {
 .coin-icon {
   width: 30px;
 }
+
+.coin-header-icon {
+  width: 50px;
+  margin-right: -14px;
+  margin-left: -10px;
+}
