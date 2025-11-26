@@ -12,7 +12,8 @@ function Navbar() {
   };
 
   return (
-    <nav className="bg-primary shadow-lg sticky top-0">
+    <nav className="bg-primary 
+shadow-[0_6px_0_#5a86c4] sticky top-0">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Navigation Links */}

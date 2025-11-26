@@ -359,8 +359,8 @@ export default function ShopPage() {
                 className={
                   "px-3 py-1.5 rounded-full text-sm border transition " +
                   (isActive
-                    ? "bg-primary text-white border-primary shadow"
-                    : "bg-bg-card text-dark border-primary-light hover:bg-primary-light/50")
+                    ? "bg-primary bg-primary shadow-[0_6px_0_#5a86c4] text-white border-primary shadow transition-all hover:scale-110 hover:bg-primary-dark active:translate-y-0.5"
+                    : "bg-bg-card bg-primary shadow-[0_6px_0_#c9c5bf] text-dark border-primary-light hover:bg-primary-light/50 shadow transition-all hover:scale-110 hover:bg-primary-dark active:translate-y-0.5")
                 }
               >
                 {cat}
@@ -413,10 +413,10 @@ export default function ShopPage() {
                   className={
                     "mt-3 w-full py-1.5 rounded text-sm font-semibold transition " +
                     (owned
-                      ? "bg-bg text-light border border-primary-light cursor-default"
+                      ? "bg-bg bg-primary shadow-[0_6px_0_#c9c5bf] text-dark border-primary-light hover:bg-primary-light/50 active:translate-y-0.5 shadow transition-all hover:scale-105"
                       : notEnough
                       ? "bg-bg-card text-light border border-primary-light cursor-not-allowed opacity-70"
-                      : "bg-primary text-white hover:bg-primary-dark")
+                      : "bg-primary bg-primary shadow-[0_6px_0_#5a86c4] text-white border-primary shadow transition-all hover:scale-105 active:translate-y-0.5")
                   }
                 >
                   {owned ? "Owned" : notEnough ? "Not enough coins" : "Buy"}
