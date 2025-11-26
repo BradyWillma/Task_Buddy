@@ -72,7 +72,7 @@ function HomePage({
     setIsModalOpen(false);
   };
 
-  const petHappiness = Math.min(100, stats.streak * 10 + stats.completedThisWeek * 5);
+  const petHappiness = Math.min(100, stats.streak * 10 + stats.completedThisWeek * 20);
 
   return (
     <>
@@ -131,7 +131,7 @@ function HomePage({
                   type="datetime-local"
                   value={newTaskDeadline}
                   onChange={(e) => setNewTaskDeadline(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-primary-light rounded-lg focus:outline-none focus:border-primary bg-bg text-text-dark"
+                  className="required w-full px-4 py-3 border-2 border-primary-light rounded-lg focus:outline-none focus:border-primary bg-bg text-text-dark"
                 />
               </div>
 

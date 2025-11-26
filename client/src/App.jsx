@@ -1,33 +1,34 @@
+// client/src/App.jsx
 import { useEffect, useState } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 
 import HomePage from "./pages/HomePage.jsx";
 import CalendarPage from "./pages/CalendarPage.jsx";
 import PetPage from "./pages/PetPage.jsx";
 import ShopPage from "./pages/ShopPage.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
+import RegisterPage from "./pages/RegisterPage.jsx";
 import Navbar from "./components/Navbar";
-
-const API_BASE = "http://localhost:5000";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { useAuth } from "./context/AuthContext";
+import { tasksAPI } from "./services/api";
 
 function App() {
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [taskError, setTaskError] = useState("");
 
-  // GET all tasks
+  // GET all tasks (only when authenticated)
   async function fetchTasks() {
+    if (!isAuthenticated) return;
+    
     try {
       setLoadingTasks(true);
       setTaskError("");
-      const res = await fetch(`${API_BASE}/api/tasks`);
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-      const data = await res.json();
-      setTasks(data);
+      const response = await tasksAPI.getTasks();
+      setTasks(response.data);
     } catch (err) {
       console.error(err);
       setTaskError("Failed to load tasks. Is the server running?");
@@ -40,98 +41,127 @@ function App() {
   async function createTask(payload) {
     try {
       setTaskError("");
-      const res = await fetch(`${API_BASE}/api/tasks`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || `Request failed: ${res.status}`);
-      }
-      const newTask = await res.json();
-      setTasks((prev) => [newTask, ...prev]);
+      const response = await tasksAPI.createTask(payload);
+      setTasks((prev) => [response.data, ...prev]);
     } catch (err) {
       console.error(err);
-      setTaskError(err.message || "Failed to create task.");
+      setTaskError(err.response?.data?.message || "Failed to create task.");
     }
   }
 
-  // PUT update task (toggle complete etc.)
+  // PUT update task
   async function updateTask(id, updates) {
     try {
-      const res = await fetch(`${API_BASE}/api/tasks/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
-      });
-      if (!res.ok) throw new Error(`Update failed: ${res.status}`);
-      const updated = await res.json();
-      setTasks((prev) => prev.map((t) => (t._id === id ? updated : t)));
+      const response = await tasksAPI.updateTask(id, updates);
+      setTasks((prev) => prev.map((t) => (t._id === id ? response.data : t)));
     } catch (err) {
       console.error(err);
-      setTaskError(err.message || "Failed to update task.");
+      setTaskError(err.response?.data?.message || "Failed to update task.");
     }
   }
 
   // DELETE task
   async function deleteTask(id) {
     try {
-      const res = await fetch(`${API_BASE}/api/tasks/${id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
+      await tasksAPI.deleteTask(id);
       setTasks((prev) => prev.filter((t) => t._id !== id));
     } catch (err) {
       console.error(err);
-      setTaskError(err.message || "Failed to delete task.");
+      setTaskError(err.response?.data?.message || "Failed to delete task.");
     }
   }
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    if (isAuthenticated && !authLoading) {
+      fetchTasks();
+    }
+  }, [isAuthenticated, authLoading]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <Router>
       <div className="min-h-screen">
-        <Navbar />
+        {isAuthenticated && <Navbar />}
 
         <Routes>
+          {/* Public routes */}
+          <Route
+            path="/login"
+            element={
+              isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />
+            }
+          />
+
+          {/* Protected routes */}
           <Route
             path="/"
             element={
-              <HomePage
-                tasks={tasks}
-                loading={loadingTasks}
-                error={taskError}
-                onRefresh={fetchTasks}
-                onCreateTask={createTask}
-                onUpdateTask={updateTask}
-                onDeleteTask={deleteTask}
-              />
+              <ProtectedRoute>
+                <HomePage
+                  tasks={tasks}
+                  loading={loadingTasks}
+                  error={taskError}
+                  onRefresh={fetchTasks}
+                  onCreateTask={createTask}
+                  onUpdateTask={updateTask}
+                  onDeleteTask={deleteTask}
+                />
+              </ProtectedRoute>
             }
           />
           <Route
             path="/home"
             element={
-              <HomePage
-                tasks={tasks}
-                loading={loadingTasks}
-                error={taskError}
-                onRefresh={fetchTasks}
-                onCreateTask={createTask}
-                onUpdateTask={updateTask}
-                onDeleteTask={deleteTask}
-              />
+              <ProtectedRoute>
+                <HomePage
+                  tasks={tasks}
+                  loading={loadingTasks}
+                  error={taskError}
+                  onRefresh={fetchTasks}
+                  onCreateTask={createTask}
+                  onUpdateTask={updateTask}
+                  onDeleteTask={deleteTask}
+                />
+              </ProtectedRoute>
             }
           />
           <Route
             path="/calendar"
-            element={<CalendarPage tasks={tasks} loading={loadingTasks} />}
+            element={
+              <ProtectedRoute>
+                <CalendarPage tasks={tasks} loading={loadingTasks} />
+              </ProtectedRoute>
+            }
           />
-          <Route path="/pet" element={<PetPage />} />
-          <Route path="/shop" element={<ShopPage />} />
+          <Route
+            path="/pet"
+            element={
+              <ProtectedRoute>
+                <PetPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/shop"
+            element={
+              <ProtectedRoute>
+                <ShopPage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </div>
     </Router>
