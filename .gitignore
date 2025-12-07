@@ -33,3 +33,4 @@ Thumbs.db
 # --- Docker ---
 docker-data/
 *.pid
+client/src/services/api.js
