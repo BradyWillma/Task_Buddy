@@ -1,320 +1,362 @@
-const express = require("express");
-const router = express.Router();
-const { protect } = require("../middleware/auth");
-const Inventory = require("../models/Inventory");
-const Pet = require("../models/Pet");
+:root {
+  --primary: #6d8fe8;
+  --primary-dark: #4b6ac7;
+  --primary-light: #aecdff;
 
-// GET /api/user/inventory
-// gets user's inventory
-// private
-router.get("/inventory", protect, async (req, res) => {
-  try {
-    let inventory = await Inventory.findOne({ userId: req.user._id });
+  --accent: #f5c85b;
 
-    // Create inventory if it doesn't exist
-    if (!inventory) {
-      inventory = await Inventory.create({
-        userId: req.user._id,
-        coins: 100,
-        items: [],
-      });
-    }
+  --bg: #fff7f0;
+  --bg-card: #f3eee7;
+  --bg-card-dark: #c9c5bf;
 
-    res.json({
-      success: true,
-      inventory,
-    });
-  } catch (error) {
-    console.error("Get inventory error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error fetching inventory",
-    });
-  }
-});
+  --text-dark: #222222;
+  --text-light: #666666;
+}
 
-router.post("/inventory/item", protect, async (req, res) => {
-  const { itemId, name, quantity = 1, type, description } = req.body;
+@import "tailwindcss";
+/* App.css */
 
-  try {
-    let inventory = await Inventory.findOne({ userId: req.user._id });
+.app {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text-dark);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  padding: 1.5rem;
+}
 
-    if (!inventory) {
-      inventory = await Inventory.create({
-        userId: req.user._id,
-        coins: 100,
-        items: [],
-      });
-    }
+.header {
+  max-width: 960px;
+  margin: 0 auto 1.5rem;
+}
 
-    const existingItem = inventory.items.find((item) => item.itemId === itemId);
+.header h1 {
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
 
-    if (existingItem) {
-      // Update quantity (can be + or -)
-      existingItem.quantity += quantity;
+.header-subtitle {
+  color: var(--text-light);
+}
 
-      // Remove item if quantity is zero or below
-      if (existingItem.quantity <= 0) {
-        inventory.items = inventory.items.filter(
-          (item) => item.itemId !== itemId
-        );
-      }
-    } else {
-      // No existing item; only allow creation if quantity > 0
-      if (quantity <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Cannot decrement item that is not in inventory",
-        });
-      }
+.layout {
+  max-width: 960px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 1.5rem;
+}
 
-      inventory.items.push({
-        itemId,
-        name,
-        description,
-        quantity,
-        type,
-      });
-    }
+/* Nav */
 
-    await inventory.save();
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
-    res.json({
-      success: true,
-      inventory,
-    });
-  } catch (error) {
-    console.error("Add item error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error updating inventory",
-    });
-  }
-});
+.nav-link {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  color: var(--text-dark);
+  background: var(--bg-card);
+  border: 1px solid var(--primary-light);
+  font-size: 0.95rem;
+}
 
-// PUT /api/user/inventory/coins
-// Updates user's coins
-// private
-router.put("/inventory/coins", protect, async (req, res) => {
-  const { amount } = req.body;
+.nav-link.active {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
 
-  try {
-    const inventory = await Inventory.findOne({ userId: req.user._id });
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 
-    if (!inventory) {
-      return res.status(404).json({
-        success: false,
-        message: "Inventory not found",
-      });
-    }
+/* Cards & buttons */
 
-    inventory.coins += amount;
-    if (inventory.coins < 0) inventory.coins = 0;
+.card {
+  background: var(--bg-card);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--primary-light);
+  box-shadow: 0 18px 45px rgb(15 23 42 / 0.15);
+}
 
-    await inventory.save();
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-    res.json({
-      success: true,
-      inventory,
-    });
-  } catch (error) {
-    console.error("Update coins error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error updating coins",
-    });
-  }
-});
+.card-header-text {
+  font-weight: 600;
+}
 
-// GET /api/user/pets
-// gets user's pets
-// private
-router.get("/pets", protect, async (req, res) => {
-  try {
-    const pets = await Pet.find({ userId: req.user._id });
+.section-subtitle {
+  color: var(--text-light);
+  margin-bottom: 0.75rem;
+}
 
-    res.json({
-      success: true,
-      pets,
-    });
-  } catch (error) {
-    console.error("Get pets error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error fetching pets",
-    });
-  }
-});
+button {
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
 
-// POST /api/user/pets
-// Creates a new pet
-// private
-router.post("/pets", protect, async (req, res) => {
-  const { name, type } = req.body;
+.btn-primary {
+  padding: 0.4rem 0.9rem;
+  background: var(--primary);
+  color: var(--text-dark);
+  font-weight: 600;
+}
 
-  if (!name || !type) {
-    return res.status(400).json({
-      success: false,
-      message: "Please provide name and type",
-    });
-  }
+.btn-secondary {
+  padding: 0.3rem 0.7rem;
+  background: var(--bg-card);
+  border: 1px solid var(--primary-light);
+  color: var(--text-dark);
+}
 
-  try {
-    const pet = await Pet.create({
-      userId: req.user._id,
-      name,
-      type,
-    });
+/* Forms */
 
-    res.status(201).json({
-      success: true,
-      pet,
-    });
-  } catch (error) {
-    console.error("Create pet error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error creating pet",
-    });
-  }
-});
+.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+}
 
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
 
-router.put("/pets/:petId", protect, async (req, res) => {
-  try {
-    const pet = await Pet.findOne({
-      _id: req.params.petId,
-      userId: req.user._id,
-    });
+.form-row label {
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
 
-    if (!pet) {
-      return res.status(404).json({
-        success: false,
-        message: "Pet not found",
-      });
-    }
+.required {
+  color: #f97373;
+}
 
-    const allowedUpdates = [
-      "happiness",
-      "hunger",
-      "experience",
-      "level",
-      "lastFed",
-      "lastPlayed",
-    ];
+input,
+textarea {
+  background: var(--bg-card);
+  border-radius: 0.5rem;
+  border: 1px solid var(--primary-light);
+  padding: 0.45rem 0.65rem;
+  color: var(--text-dark);
+  font-size: 0.9rem;
+  outline: none;
+}
 
-    // Track if experience changed
-    let experienceChanged = false;
+input:focus,
+textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
 
-    Object.keys(req.body).forEach((key) => {
-      if (allowedUpdates.includes(key)) {
-        pet[key] = req.body[key];
-        if (key === "experience") {
-          experienceChanged = true;
-        }
-      }
-    });
+textarea {
+  resize: vertical;
+}
 
-    // Keep experience non-negative
-    if (pet.experience < 0) pet.experience = 0;
+.error {
+  margin-top: 0.4rem;
+  color: #f97373;
+  font-size: 0.85rem;
+}
 
-    // If experience changed, try to level up
-    if (experienceChanged && typeof pet.checkLevelUp === "function") {
-      // In case of large EXP gains, allow multiple level ups
-      while (pet.checkLevelUp()) {}
-    }
+/* Task list */
 
-    await pet.save();
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
 
-    res.json({
-      success: true,
-      pet,
-    });
-  } catch (error) {
-    console.error("Update pet error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error updating pet",
-    });
-  }
-});
+.task-item {
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--primary-light);
+}
 
-router.post("/pets/:petId/feed", protect, async (req, res) => {
-  const { itemId } = req.body;
+.task-item:last-child {
+  border-bottom: none;
+}
 
-  if (!itemId) {
-    return res.status(400).json({
-      success: false,
-      message: "itemId is required",
-    });
-  }
+.task-main h3 {
+  margin: 0;
+  font-size: 1rem;
+}
 
-  try {
-    const pet = await Pet.findOne({
-      _id: req.params.petId,
-      userId: req.user._id,
-    });
+.task-desc {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
 
-    if (!pet) {
-      return res.status(404).json({
-        success: false,
-        message: "Pet not found",
-      });
-    }
+.task-meta {
+  margin-top: 0.3rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
 
-    const inventory = await Inventory.findOne({ userId: req.user._id });
+.tag-open,
+.tag-done {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
 
-    if (!inventory) {
-      return res.status(400).json({
-        success: false,
-        message: "Inventory not found",
-      });
-    }
+.tag-open {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--primary-dark);
+}
 
-    const item = inventory.items.find((i) => i.itemId === itemId);
+.tag-done {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
 
-    if (!item || item.quantity <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "You don't have this item to feed",
-      });
-    }
+/* Calendar stub */
 
-    // Consume one item
-    item.quantity -= 1;
-    if (item.quantity <= 0) {
-      inventory.items = inventory.items.filter((i) => i.itemId !== itemId);
-    }
+.calendar-day {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--primary-light);
+}
 
-    // Apply effects to pet
-    const happinessGain = 15;
-    const expGain = 20;
+.calendar-day:last-child {
+  border-bottom: none;
+}
 
-    pet.happiness = Math.min(100, (pet.happiness || 0) + happinessGain);
-    pet.experience = (pet.experience || 0) + expGain;
+.calendar-day h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+}
 
-    // Level up if needed
-    if (typeof pet.checkLevelUp === "function") {
-      while (pet.checkLevelUp()) {}
-    }
+.task-actions {
+  margin-top: 0.4rem;
+  display: flex;
+  gap: 0.5rem;
+}
 
-    await inventory.save();
-    await pet.save();
+/* Calendar layout (for later if you want full grid) */
 
-    res.json({
-      success: true,
-      pet,
-      inventory,
-    });
-  } catch (error) {
-    console.error("Feed pet error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error feeding pet",
-    });
-  }
-});
+.calendar-card {
+  padding: 0.75rem 1rem 1rem;
+  min-height: 480px; /* gives the grid some vertical space */
+}
 
+/* compact top bar for month + buttons */
+.calendar-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  gap: 0.75rem;
+}
 
+.calendar-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
-module.exports = router;
+.calendar-toolbar-right {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.calendar-month-label {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* weekdays row */
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-size: 0.8rem;
+  text-align: center;
+  color: var(--text-light);
+  margin-bottom: 0.25rem;
+}
+
+.calendar-weekday {
+  padding: 0.25rem 0;
+}
+
+/* main grid */
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.2rem;
+  font-size: 0.8rem;
+}
+
+.calendar-cell {
+  min-height: 90px; /* bigger cells */
+  border-radius: 0.5rem;
+  border: 1px solid var(--primary-dark);
+  padding: 0.25rem 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.calendar-cell--faded {
+  opacity: 0.4;
+}
+
+.calendar-cell-date {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+/* tasks inside each day */
+
+.calendar-cell-tasks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-height: 72px;        /* if lots of tasks, scroll instead of overflowing */
+  overflow-y: auto;
+}
+
+.calendar-cell-tasks li {
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calendar-cell-more {
+  color: var(--text-light);
+}
+
+.coin-icon {
+  width: 30px;
+}
+
+.coin-header-icon {
+  width: 50px;
+  margin-right: -14px;
+  margin-left: -10px;
+}
