@@ -1,4 +1,5 @@
 // client/src/pages/PetPage.jsx
+
 import { useEffect, useState, useMemo } from "react";
 import { userAPI } from "../services/api";
 
