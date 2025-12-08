@@ -289,7 +289,7 @@ function PetPage({ tasks }) {
 
                 <button
                   onClick={() => handlePlay(currentPet)}
-                  className="mt-2 px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-all shadow-[0_4px_0_#5a86c4] active:translate-y-0.5"
+                  className="btn-primary rounded-lg font-semibold hover:bg-primary-dark transition-all shadow-[0_4px_0_#5a86c4] active:translate-y-0.5"
                 >
                   Play with {currentPet.name}
                 </button>
