@@ -1,16 +1,16 @@
 :root {
-  --primary: #7baaed;
-  --primary-dark: #578fd9;
-  --primary-light: #a5c8ff;
+  --primary: #6d8fe8;
+  --primary-dark: #4b6ac7;
+  --primary-light: #aecdff;
 
-  --accent: #f9d65c;
+  --accent: #f5c85b;
 
   --bg: #fff7f0;
-  --bg-card: #f0ece6;
+  --bg-card: #f3eee7;
   --bg-card-dark: #c9c5bf;
 
-  --text-dark: #2e2e2e;
-  --text-light: #5a5a5a;
+  --text-dark: #222222;
+  --text-light: #666666;
 }
 
 @import "tailwindcss";
@@ -82,7 +82,7 @@
   background: var(--bg-card);
   border-radius: 0.75rem;
   padding: 1rem 1.25rem;
-  border: 1px solid var(primary-light);
+  border: 1px solid var(--primary-light);
   box-shadow: 0 18px 45px rgb(15 23 42 / 0.15);
 }
 

@@ -34,7 +34,7 @@ router.get("/inventory", protect, async (req, res) => {
 });
 
 router.post("/inventory/item", protect, async (req, res) => {
-  const { itemId, name, quantity, type } = req.body;
+  const { itemId, name, quantity = 1, type, description } = req.body;
 
   try {
     let inventory = await Inventory.findOne({ userId: req.user._id });
@@ -47,16 +47,32 @@ router.post("/inventory/item", protect, async (req, res) => {
       });
     }
 
-    // Check if item already exists
     const existingItem = inventory.items.find((item) => item.itemId === itemId);
 
     if (existingItem) {
-      existingItem.quantity += quantity || 1;
+      // Update quantity (can be + or -)
+      existingItem.quantity += quantity;
+
+      // Remove item if quantity is zero or below
+      if (existingItem.quantity <= 0) {
+        inventory.items = inventory.items.filter(
+          (item) => item.itemId !== itemId
+        );
+      }
     } else {
+      // No existing item; only allow creation if quantity > 0
+      if (quantity <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Cannot decrement item that is not in inventory",
+        });
+      }
+
       inventory.items.push({
         itemId,
         name,
-        quantity: quantity || 1,
+        description,
+        quantity,
         type,
       });
     }
@@ -71,7 +87,7 @@ router.post("/inventory/item", protect, async (req, res) => {
     console.error("Add item error:", error);
     res.status(500).json({
       success: false,
-      message: "Error adding item to inventory",
+      message: "Error updating inventory",
     });
   }
 });
@@ -163,9 +179,7 @@ router.post("/pets", protect, async (req, res) => {
   }
 });
 
-// PUT /api/user/pets/:petId
-// Update pet stats
-// Private
+
 router.put("/pets/:petId", protect, async (req, res) => {
   try {
     const pet = await Pet.findOne({
@@ -180,13 +194,35 @@ router.put("/pets/:petId", protect, async (req, res) => {
       });
     }
 
-    // Update only allowed fields
-    const allowedUpdates = ["happiness", "hunger", "experience", "level", "lastFed", "lastPlayed"];
+    const allowedUpdates = [
+      "happiness",
+      "hunger",
+      "experience",
+      "level",
+      "lastFed",
+      "lastPlayed",
+    ];
+
+    // Track if experience changed
+    let experienceChanged = false;
+
     Object.keys(req.body).forEach((key) => {
       if (allowedUpdates.includes(key)) {
         pet[key] = req.body[key];
+        if (key === "experience") {
+          experienceChanged = true;
+        }
       }
     });
+
+    // Keep experience non-negative
+    if (pet.experience < 0) pet.experience = 0;
+
+    // If experience changed, try to level up
+    if (experienceChanged && typeof pet.checkLevelUp === "function") {
+      // In case of large EXP gains, allow multiple level ups
+      while (pet.checkLevelUp()) {}
+    }
 
     await pet.save();
 
@@ -202,5 +238,83 @@ router.put("/pets/:petId", protect, async (req, res) => {
     });
   }
 });
+
+router.post("/pets/:petId/feed", protect, async (req, res) => {
+  const { itemId } = req.body;
+
+  if (!itemId) {
+    return res.status(400).json({
+      success: false,
+      message: "itemId is required",
+    });
+  }
+
+  try {
+    const pet = await Pet.findOne({
+      _id: req.params.petId,
+      userId: req.user._id,
+    });
+
+    if (!pet) {
+      return res.status(404).json({
+        success: false,
+        message: "Pet not found",
+      });
+    }
+
+    const inventory = await Inventory.findOne({ userId: req.user._id });
+
+    if (!inventory) {
+      return res.status(400).json({
+        success: false,
+        message: "Inventory not found",
+      });
+    }
+
+    const item = inventory.items.find((i) => i.itemId === itemId);
+
+    if (!item || item.quantity <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "You don't have this item to feed",
+      });
+    }
+
+    // Consume one item
+    item.quantity -= 1;
+    if (item.quantity <= 0) {
+      inventory.items = inventory.items.filter((i) => i.itemId !== itemId);
+    }
+
+    // Apply effects to pet
+    const happinessGain = 15;
+    const expGain = 20;
+
+    pet.happiness = Math.min(100, (pet.happiness || 0) + happinessGain);
+    pet.experience = (pet.experience || 0) + expGain;
+
+    // Level up if needed
+    if (typeof pet.checkLevelUp === "function") {
+      while (pet.checkLevelUp()) {}
+    }
+
+    await inventory.save();
+    await pet.save();
+
+    res.json({
+      success: true,
+      pet,
+      inventory,
+    });
+  } catch (error) {
+    console.error("Feed pet error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error feeding pet",
+    });
+  }
+});
+
+
 
 module.exports = router;

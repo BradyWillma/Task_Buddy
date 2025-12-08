@@ -55,6 +55,7 @@ export const userAPI = {
   createPet: (petData) => api.post("/user/pets", petData),
   updatePet: (petId, updates) => api.put(`/user/pets/${petId}`, updates),
   playWithPet: (petId) => api.post(`/user/pets/${petId}/play`),
+  feedPet: (petId, itemId) => api.post(`/user/pets/${petId}/feed`, { itemId }),
 };
 
 // Tasks API calls

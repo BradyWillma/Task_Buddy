@@ -142,7 +142,12 @@ function App() {
             path="/calendar"
             element={
               <ProtectedRoute>
-                <CalendarPage tasks={tasks} loading={loadingTasks} />
+                <CalendarPage
+                  tasks={tasks}
+                  loading={loadingTasks}
+                  onUpdateTask={updateTask}
+                  onDeleteTask={deleteTask}
+                />
               </ProtectedRoute>
             }
           />
