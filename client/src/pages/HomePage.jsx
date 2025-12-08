@@ -1,4 +1,7 @@
+// src/pages/HomePage.jsx (or wherever you keep it)
+
 import { useState, useMemo } from "react";
+import { computePetStats } from "../utils/petStats";
 
 function HomePage({
   tasks,
@@ -19,29 +22,48 @@ function HomePage({
 
   const TASKS_PER_PAGE = 5;
 
+  // 🔹 Shared time-based stats + happiness using useMemo
+  const { completedThisWeek, streak, petHappiness } = useMemo(
+    () => computePetStats(tasks),
+    [tasks]
+  );
+
+  // 🔹 Pet mood based on petHappiness
+  const getPetEmoji = () => {
+    if (petHappiness >= 80) return "😺";
+    if (petHappiness >= 40) return "😼";
+    return "😿";
+  };
+
+  const getPetMoodText = () => {
+    if (petHappiness >= 80) return "Your pet is thrilled!";
+    if (petHappiness >= 40) return "Your pet is doing fine.";
+    return "Your pet is feeling neglected...";
+  };
+
   const getNext7Days = () => {
     const days = [];
     const today = new Date();
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       date.setHours(0, 0, 0, 0);
-      
+
       days.push({
         date: date,
         dayName: dayNames[date.getDay()],
         dateStr: `${date.getMonth() + 1}/${date.getDate()}`,
-        fullDate: date.toDateString()
+        fullDate: date.toDateString(),
       });
     }
-    
+
     return days;
   };
 
   const getTasksForDate = (date) => {
-    return tasks.filter(task => {
+    return tasks.filter((task) => {
       if (!task.deadline) return false;
       const taskDate = new Date(task.deadline);
       taskDate.setHours(0, 0, 0, 0);
@@ -51,7 +73,7 @@ function HomePage({
 
   const getTaskColorClass = (task, isInWeeklyView = false) => {
     if (task.completed) {
-      return isInWeeklyView 
+      return isInWeeklyView
         ? "bg-green-200 shadow-[0_2px_0_#c9c5bf] text-dark border-primary-light hover:bg-primary-light/50 active:translate-y-0.5 shadow transition-all hover:scale-105"
         : "bg-green-200";
     }
@@ -60,8 +82,10 @@ function HomePage({
     today.setHours(0, 0, 0, 0);
     const taskDate = new Date(task.deadline);
     taskDate.setHours(0, 0, 0, 0);
-    
-    const daysUntil = Math.floor((taskDate - today) / (1000 * 60 * 60 * 24));
+
+    const daysUntil = Math.floor(
+      (taskDate - today) / (1000 * 60 * 60 * 24)
+    );
 
     if (daysUntil <= 1) {
       return isInWeeklyView
@@ -83,43 +107,6 @@ function HomePage({
     setIsDayModalOpen(true);
   };
 
-  const stats = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - today.getDay());
-    
-    const completedThisWeek = tasks.filter((task) => {
-      if (!task.completed) return false;
-      const completedDate = new Date(task.updatedAt || task.createdAt);
-      return completedDate >= weekStart;
-    }).length;
-
-    let streak = 0;
-    let checkDate = new Date(today);
-    
-    for (let i = 0; i < 30; i++) {
-      const hasCompletedTask = tasks.some((task) => {
-        if (!task.completed) return false;
-        const completedDate = new Date(task.updatedAt || task.createdAt);
-        completedDate.setHours(0, 0, 0, 0);
-        return completedDate.getTime() === checkDate.getTime();
-      });
-      
-      if (hasCompletedTask) {
-        streak++;
-        checkDate.setDate(checkDate.getDate() - 1);
-      } else if (i === 0) {
-        checkDate.setDate(checkDate.getDate() - 1);
-      } else {
-        break;
-      }
-    }
-
-    return { completedThisWeek, streak };
-  }, [tasks]);
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!newTaskTitle.trim()) return;
@@ -136,21 +123,6 @@ function HomePage({
     setNewTaskDeadline("");
     setIsModalOpen(false);
   };
-
-  const petHappiness = Math.min(100, stats.streak * 10 + stats.completedThisWeek * 20);
-
-  const getPetEmoji = () => {
-  if (petHappiness >= 80) return "😺";      // very happy
-  if (petHappiness >= 40) return "😼";      // okay/neutral
-  return "😿";                              // sad
-};
-
-const getPetMoodText = () => {
-  if (petHappiness >= 80) return "Your pet is thrilled!";
-  if (petHappiness >= 40) return "Your pet is doing fine.";
-  return "Your pet is feeling neglected...";
-};
-
 
   const totalPages = Math.ceil(tasks.length / TASKS_PER_PAGE);
   const paginatedTasks = tasks.slice(
@@ -172,12 +144,13 @@ const getPetMoodText = () => {
 
   return (
     <>
+      {/* Day modal */}
       {isDayModalOpen && selectedDay && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={() => setIsDayModalOpen(false)}
         >
-          <div 
+          <div
             className="bg-bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6 relative"
             onClick={(e) => e.stopPropagation()}
           >
@@ -187,7 +160,7 @@ const getPetMoodText = () => {
             >
               ×
             </button>
-            
+
             <h3 className="text-2xl font-bold text-dark mb-2">
               {selectedDay.dayName} - {selectedDay.dateStr}
             </h3>
@@ -211,7 +184,11 @@ const getPetMoodText = () => {
                       }`}
                     >
                       <button
-                        onClick={() => onUpdateTask(task._id, { completed: !task.completed })}
+                        onClick={() =>
+                          onUpdateTask(task._id, {
+                            completed: !task.completed,
+                          })
+                        }
                         className="flex-shrink-0 text-2xl"
                       >
                         {task.completed ? "✅" : "⭕"}
@@ -234,7 +211,9 @@ const getPetMoodText = () => {
                         )}
                         {task.deadline && (
                           <div className="text-sm text-text-light mt-1">
-                            Due: {new Date(task.deadline).toLocaleString()}
+                            Due: {new Date(
+                              task.deadline
+                            ).toLocaleString()}
                           </div>
                         )}
                       </div>
@@ -254,12 +233,13 @@ const getPetMoodText = () => {
         </div>
       )}
 
+      {/* Create Task modal */}
       {isModalOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={() => setIsModalOpen(false)}
         >
-          <div 
+          <div
             className="bg-bg-card rounded-2xl shadow-2xl max-w-md w-full p-6 relative"
             onClick={(e) => e.stopPropagation()}
           >
@@ -269,9 +249,11 @@ const getPetMoodText = () => {
             >
               ×
             </button>
-            
-            <h3 className="text-2xl font-bold text-dark mb-6">Create Task</h3>
-            
+
+            <h3 className="text-2xl font-bold text-dark mb-6">
+              Create Task
+            </h3>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-text-dark mb-2">
@@ -295,7 +277,9 @@ const getPetMoodText = () => {
                   rows={3}
                   value={newTaskDescription}
                   placeholder="Optional details…"
-                  onChange={(e) => setNewTaskDescription(e.target.value)}
+                  onChange={(e) =>
+                    setNewTaskDescription(e.target.value)
+                  }
                   className="w-full px-4 py-3 border-2 border-primary-light rounded-lg focus:outline-none focus:border-primary resize-none bg-bg text-text-dark"
                 />
               </div>
@@ -307,7 +291,9 @@ const getPetMoodText = () => {
                 <input
                   type="datetime-local"
                   value={newTaskDeadline}
-                  onChange={(e) => setNewTaskDeadline(e.target.value)}
+                  onChange={(e) =>
+                    setNewTaskDeadline(e.target.value)
+                  }
                   className="required w-full px-4 py-3 border-2 border-primary-light rounded-lg focus:outline-none focus:border-primary bg-bg text-text-dark"
                 />
               </div>
@@ -332,26 +318,37 @@ const getPetMoodText = () => {
         </div>
       )}
 
+      {/* Main layout */}
       <div className="min-h-screen bg-bg pt-6 px-6 pb-6">
         <div className="max-w-7xl mx-auto">
+          {/* Floating + button */}
           <button
             onClick={() => setIsModalOpen(true)}
             className="fixed bottom-8 right-8 w-16 h-16 bg-primary text-white rounded-full shadow-[0_6px_0_#5a86c4] transition-all hover:scale-110 hover:bg-primary-dark flex items-center justify-center z-40 active:translate-y-0.5"
           >
-            <span className="text-4xl font-light leading-none">+</span>
+            <span className="text-4xl font-light leading-none">
+              +
+            </span>
           </button>
 
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-dark mb-2">Task Buddy</h1>
-            <p className="text-text-light">Complete tasks to keep your pet happy!</p>
+            <h1 className="text-4xl font-bold text-dark mb-2">
+              Task Buddy
+            </h1>
+            <p className="text-text-light">
+              Complete tasks to keep your pet happy!
+            </p>
           </div>
 
+          {/* Weekly progress cards */}
           <div className="bg-bg-card rounded-2xl shadow-[0_6px_3px_#c9c5bf] p-6 mb-6">
-            <h2 className="text-xl font-semibold text-text-dark mb-4">Weekly Progress</h2>
+            <h2 className="text-xl font-semibold text-text-dark mb-4">
+              Weekly Progress
+            </h2>
             <div className="flex justify-around items-center gap-2">
               {getNext7Days().map((dayInfo, index) => {
                 const dayTasks = getTasksForDate(dayInfo.date);
-                
+
                 return (
                   <div
                     key={index}
@@ -359,8 +356,12 @@ const getPetMoodText = () => {
                     className="flex flex-col w-full max-w-[140px] h-[160px] rounded-2xl shadow-[0_3px_2px_#c9c5bf] bg-bg cursor-pointer hover:shadow-[0_4px_3px_#b0aca6] transition-all overflow-hidden"
                   >
                     <div className="text-center pt-2 pb-1 px-2">
-                      <span className="text-sm font-semibold text-text-dark">{dayInfo.dayName}</span>
-                      <div className="text-xs text-text-light">{dayInfo.dateStr}</div>
+                      <span className="text-sm font-semibold text-text-dark">
+                        {dayInfo.dayName}
+                      </span>
+                      <div className="text-xs text-text-light">
+                        {dayInfo.dateStr}
+                      </div>
                     </div>
                     <div className="flex-1 px-2 pb-2 overflow-hidden relative">
                       {dayTasks.length > 0 && (
@@ -369,7 +370,10 @@ const getPetMoodText = () => {
                             {dayTasks.slice(0, 4).map((task) => (
                               <div
                                 key={task._id}
-                                className={`text-xs px-2 py-1 rounded ${getTaskColorClass(task, true)} truncate`}
+                                className={`text-xs px-2 py-1 rounded ${getTaskColorClass(
+                                  task,
+                                  true
+                                )} truncate`}
                               >
                                 {task.title}
                               </div>
@@ -387,7 +391,9 @@ const getPetMoodText = () => {
             </div>
           </div>
 
+          {/* Stats row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            {/* Completed this week */}
             <div className="bg-bg-card rounded-2xl p-6 shadow-[0_6px_3px_#c9c5bf]">
               <h3 className="text-lg font-semibold text-text-dark mb-4">
                 Tasks Completed
@@ -395,14 +401,15 @@ const getPetMoodText = () => {
               <div className="flex items-center justify-center">
                 <div className="text-center">
                   <span className="text-6xl mb-2 block">✅</span>
-                  <div className="text-green-300 text-5xl font-bold  mb-2">
-                    {stats.completedThisWeek}
+                  <div className="text-green-300 text-5xl font-bold mb-2">
+                    {completedThisWeek}
                   </div>
                   <div className="text-text-light">This Week</div>
                 </div>
               </div>
             </div>
 
+            {/* Streak */}
             <div className="bg-bg-card rounded-2xl shadow-[0_6px_3px_#c9c5bf] p-6">
               <h3 className="text-lg font-semibold text-text-dark mb-4">
                 Current Streak
@@ -411,13 +418,14 @@ const getPetMoodText = () => {
                 <div className="text-center">
                   <span className="text-6xl mb-2 block">🔥</span>
                   <div className="text-5xl font-bold text-orange-400">
-                    {stats.streak}
+                    {streak}
                   </div>
                   <div className="text-text-light">Days</div>
                 </div>
               </div>
             </div>
 
+            {/* Pet happiness */}
             <div className="bg-bg-card rounded-2xl shadow-[0_6px_3px_#c9c5bf] p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-text-dark">
@@ -427,7 +435,7 @@ const getPetMoodText = () => {
                   {petHappiness}%
                 </div>
               </div>
-              
+
               <div className="mb-4">
                 <div className="w-full bg-bg rounded-full h-4 shadow-[0_3px_1px_#c9c5bf]">
                   <div
@@ -437,10 +445,8 @@ const getPetMoodText = () => {
                 </div>
               </div>
 
-              <div className="bg-bg rounded-2xl p-8 flex items-center justify-center shadow-[0_3px_3px_#c9c5bf]">
-                <span className="text-7xl mb-2">
-                  {getPetEmoji()}
-                </span>
+              <div className="bg-bg rounded-2xl p-8 flex flex-col items-center justify-center shadow-[0_3px_3px_#c9c5bf]">
+                <span className="text-7xl mb-2">{getPetEmoji()}</span>
                 <span className="text-sm text-text-light text-center">
                   {getPetMoodText()}
                 </span>
@@ -448,10 +454,13 @@ const getPetMoodText = () => {
             </div>
           </div>
 
+          {/* To-Do List */}
           <div className="bg-bg-card rounded-2xl shadow-[0_6px_3px_#c9c5bf] p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold text-text-dark">To-Do</h2>
-              
+              <h2 className="text-2xl font-semibold text-text-dark">
+                To-Do
+              </h2>
+
               {tasks.length > TASKS_PER_PAGE && (
                 <div className="flex gap-2">
                   <button
@@ -490,10 +499,13 @@ const getPetMoodText = () => {
             )}
 
             {loading ? (
-              <div className="text-center py-8 text-text-light">Loading tasks...</div>
+              <div className="text-center py-8 text-text-light">
+                Loading tasks...
+              </div>
             ) : tasks.length === 0 ? (
               <div className="text-center py-8 text-text-light">
-                No tasks yet. Click the + button to create your first task!
+                No tasks yet. Click the + button to create your first
+                task!
               </div>
             ) : (
               <div className="space-y-3">
@@ -508,7 +520,9 @@ const getPetMoodText = () => {
                   >
                     <button
                       onClick={() =>
-                        onUpdateTask(task._id, { completed: !task.completed })
+                        onUpdateTask(task._id, {
+                          completed: !task.completed,
+                        })
                       }
                       className="flex-shrink-0 text-2xl"
                     >
@@ -532,7 +546,9 @@ const getPetMoodText = () => {
                       )}
                       {task.deadline && (
                         <div className="text-sm text-text-light mt-1">
-                          Due: {new Date(task.deadline).toLocaleString()}
+                          Due: {new Date(
+                            task.deadline
+                          ).toLocaleString()}
                         </div>
                       )}
                     </div>

@@ -16,6 +16,24 @@
 @import "tailwindcss";
 /* App.css */
 
+@layer theme {
+  @theme {
+    /* Your semantic colors */
+    --color-primary: #6d8fe8;
+    --color-primary-dark: #4b6ac7;
+    --color-primary-light: #aecdff;
+
+    --color-accent: #f5c85b;
+
+    --color-bg: #fff7f0;
+    --color-bg-card: #f3eee7;
+    --color-bg-card-dark: #c9c5bf;
+
+    --color-text-dark: #222222;
+    --color-text-light: #666666;
+  }
+}
+
 .app {
   min-height: 100vh;
   background: var(--bg);
@@ -360,3 +378,4 @@ textarea {
   margin-right: -14px;
   margin-left: -10px;
 }
+
