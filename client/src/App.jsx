@@ -23,7 +23,7 @@ function App() {
   // GET all tasks (only when authenticated)
   async function fetchTasks() {
     if (!isAuthenticated) return;
-    
+
     try {
       setLoadingTasks(true);
       setTaskError("");
@@ -155,7 +155,8 @@ function App() {
             path="/pet"
             element={
               <ProtectedRoute>
-                <PetPage />
+                {/* 🔹 pass tasks into PetPage so it can use the time-based memo */}
+                <PetPage tasks={tasks} />
               </ProtectedRoute>
             }
           />

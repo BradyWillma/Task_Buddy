@@ -139,6 +139,19 @@ function HomePage({
 
   const petHappiness = Math.min(100, stats.streak * 10 + stats.completedThisWeek * 20);
 
+  const getPetEmoji = () => {
+  if (petHappiness >= 80) return "😺";      // very happy
+  if (petHappiness >= 40) return "😼";      // okay/neutral
+  return "😿";                              // sad
+};
+
+const getPetMoodText = () => {
+  if (petHappiness >= 80) return "Your pet is thrilled!";
+  if (petHappiness >= 40) return "Your pet is doing fine.";
+  return "Your pet is feeling neglected...";
+};
+
+
   const totalPages = Math.ceil(tasks.length / TASKS_PER_PAGE);
   const paginatedTasks = tasks.slice(
     (currentPage - 1) * TASKS_PER_PAGE,
@@ -425,7 +438,12 @@ function HomePage({
               </div>
 
               <div className="bg-bg rounded-2xl p-8 flex items-center justify-center shadow-[0_3px_3px_#c9c5bf]">
-                <span className="text-7xl">🐱TEMP</span>
+                <span className="text-7xl mb-2">
+                  {getPetEmoji()}
+                </span>
+                <span className="text-sm text-text-light text-center">
+                  {getPetMoodText()}
+                </span>
               </div>
             </div>
           </div>

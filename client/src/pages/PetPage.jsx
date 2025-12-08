@@ -9,7 +9,7 @@ const PET_ICONS = {
   penguin: "🐧",
 };
 
-function PetPage() {
+function PetPage({ tasks }) {
   const [pets, setPets] = useState([]);
   const [inventory, setInventory] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -19,6 +19,58 @@ function PetPage() {
   const [newPet, setNewPet] = useState({ name: "", type: "cat" });
 
   const currentPet = pets[0] || null;
+
+  // 🔹 Time-based stats from tasks using useMemo (same idea as HomePage)
+  const { completedThisWeek, streak, timePetHappiness } = useMemo(() => {
+    const safeTasks = Array.isArray(tasks) ? tasks : [];
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay());
+
+    const completedThisWeek = safeTasks.filter((task) => {
+      if (!task.completed) return false;
+      const completedDate = new Date(task.updatedAt || task.createdAt);
+      return completedDate >= weekStart;
+    }).length;
+
+    let streak = 0;
+    let checkDate = new Date(today);
+
+    for (let i = 0; i < 30; i++) {
+      const hasCompletedTask = safeTasks.some((task) => {
+        if (!task.completed) return false;
+        const completedDate = new Date(task.updatedAt || task.createdAt);
+        completedDate.setHours(0, 0, 0, 0);
+        return completedDate.getTime() === checkDate.getTime();
+      });
+
+      if (hasCompletedTask) {
+        streak++;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else if (i === 0) {
+        // allow “missed today but had yesterday” without killing streak at 0
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+
+    const timePetHappiness = Math.min(
+      100,
+      streak * 10 + completedThisWeek * 20
+    );
+
+    return { completedThisWeek, streak, timePetHappiness };
+  }, [tasks]);
+
+  const getTaskMoodText = () => {
+    if (timePetHappiness >= 80) return "Your study buddy is thrilled!";
+    if (timePetHappiness >= 40) return "Your study buddy is doing fine.";
+    return "Your study buddy is feeling neglected...";
+  };
 
   // Load pets + inventory on mount
   useEffect(() => {
@@ -202,6 +254,7 @@ function PetPage() {
           <>
             {/* Top row: pet + stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* Left: pet + study happiness */}
               <div className="bg-bg-card rounded-2xl shadow-[0_6px_3px_#c9c5bf] p-6 flex flex-col items-center">
                 <div className="text-7xl mb-4">
                   {PET_ICONS[currentPet.type] || "🐾"}
@@ -212,6 +265,27 @@ function PetPage() {
                 <p className="text-text-light mb-4 capitalize">
                   {currentPet.type}
                 </p>
+
+                {/* 🔹 Task-based (time memo) happiness from tasks */}
+                <div className="w-full max-w-sm mb-4">
+                  <div className="flex justify-between text-sm text-text-dark mb-1">
+                    <span>Study Happiness</span>
+                    <span>{timePetHappiness}%</span>
+                  </div>
+                  <div className="w-full bg-bg rounded-full h-3 shadow-[0_2px_1px_#c9c5bf]">
+                    <div
+                      className="bg-accent h-3 rounded-full transition-all duration-500"
+                      style={{ width: `${timePetHappiness}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-text-light mt-2 text-center">
+                    {getTaskMoodText()}
+                  </p>
+                  <p className="text-[11px] text-text-light mt-1 text-center">
+                    Streak: {streak} day{streak === 1 ? "" : "s"} ·{" "}
+                    Completed this week: {completedThisWeek}
+                  </p>
+                </div>
 
                 <button
                   onClick={() => handlePlay(currentPet)}
@@ -228,9 +302,10 @@ function PetPage() {
                 )}
               </div>
 
+              {/* Right: backend stats (level / exp / DB happiness) */}
               <div className="bg-bg-card rounded-2xl shadow-[0_6px_3px_#c9c5bf] p-6">
                 <h3 className="text-xl font-semibold text-text-dark mb-4">
-                  Stats
+                  Pet Stats
                 </h3>
 
                 <StatBar
