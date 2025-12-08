@@ -1,19 +1,3 @@
-<<<<<<< Updated upstream
-function PetPage() {
-  return (
-    <section>
-      <h2>Pet</h2>
-      <p className="section-subtitle">
-        This page will show your virtual pet’s happiness, energy, and level.
-      </p>
-      <div className="card">
-        <p>Pet sprite / stats go here.</p>
-        <ul>
-          <li>Happiness: (from backend later)</li>
-          <li>Energy: (from backend later)</li>
-          <li>Level: (from backend later)</li>
-        </ul>
-=======
 // client/src/pages/PetPage.jsx
 import { useEffect, useState, useMemo } from "react";
 import { userAPI } from "../services/api";
@@ -334,9 +318,27 @@ function PetPage() {
             </div>
           </>
         )}
->>>>>>> Stashed changes
       </div>
-    </section>
+    </div>
+  );
+}
+
+function StatBar({ label, value, max, text }) {
+  const pct = max > 0 ? Math.min(100, Math.max(0, (value / max) * 100)) : 0;
+
+  return (
+    <div className="mb-4">
+      <div className="flex justify-between text-sm mb-1 text-text-dark">
+        <span>{label}</span>
+        <span>{text}</span>
+      </div>
+      <div className="w-full bg-bg rounded-full h-3 shadow-[0_2px_1px_#c9c5bf]">
+        <div
+          className="bg-accent h-3 rounded-full transition-all duration-500"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
   );
 }
 
