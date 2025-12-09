@@ -324,7 +324,7 @@ function HomePage({
           {/* Floating + button */}
           <button
             onClick={() => setIsModalOpen(true)}
-            className="fixed bottom-8 right-8 w-16 h-16 bg-primary text-white rounded-full shadow-[0_6px_0_#5a86c4] transition-all hover:scale-110 hover:bg-primary-dark flex items-center justify-center z-40 active:translate-y-0.5"
+            className="fixed bottom-8 right-8 w-16 h-16 bg-primary text-white rounded-full shadow-[0_6px_0_#5a86c4] transition-all hover:scale-110 flex items-center justify-center z-40 active:translate-y-0.5"
           >
             <span className="text-4xl font-light leading-none">
               +
