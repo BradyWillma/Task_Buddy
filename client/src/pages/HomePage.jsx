@@ -257,7 +257,7 @@ function HomePage({
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-text-dark mb-2">
-                  Title <span className="text-dar">*</span>
+                  Title <span className="text-dark">*</span>
                 </label>
                 <input
                   type="text"

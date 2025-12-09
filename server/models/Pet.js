@@ -16,7 +16,7 @@ const petSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ["cat", "dog", "penguin"], // Current pets, add more whenever necessary (chick? bear?)
+      enum: ["cat", "dog", "penguin"],
     },
     level: {
       type: Number,
@@ -33,6 +33,15 @@ const petSchema = new mongoose.Schema(
       default: 100,
       min: 0,
       max: 100,
+    },
+    hunger: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    lastFed: {
+      type: Date,
     },
     lastPlayed: {
       type: Date,
