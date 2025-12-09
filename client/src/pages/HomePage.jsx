@@ -1,7 +1,18 @@
-// src/pages/HomePage.jsx (or wherever you keep it)
+// src/pages/HomePage.jsx
 
 import { useState, useMemo } from "react";
 import { computePetStats } from "../utils/petStats";
+
+const PET_ICONS = {
+  cat: "🐱",
+  dog: "🐶",
+  penguin: "🐧",
+};
+
+const BACKGROUND_IMAGES = {
+  "bg-cozy_room": "/src/images/cozy_room.png",
+  "bg-park": "/src/images/park.png",
+};
 
 function HomePage({
   tasks,
@@ -11,6 +22,8 @@ function HomePage({
   onCreateTask,
   onUpdateTask,
   onDeleteTask,
+  selectedBackground,
+  currentPet,
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
@@ -425,7 +438,7 @@ function HomePage({
               </div>
             </div>
 
-            {/* Pet happiness */}
+            {/* Pet happiness with background */}
             <div className="bg-bg-card rounded-2xl shadow-[0_6px_3px_#c9c5bf] p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-text-dark">
@@ -445,9 +458,20 @@ function HomePage({
                 </div>
               </div>
 
-              <div className="bg-bg rounded-2xl p-8 flex flex-col items-center justify-center shadow-[0_3px_3px_#c9c5bf]">
-                <span className="text-7xl mb-2">{getPetEmoji()}</span>
-                <span className="text-sm text-text-light text-center">
+              <div className="relative bg-bg rounded-2xl p-8 flex flex-col items-center justify-center shadow-[0_3px_3px_#c9c5bf] overflow-hidden">
+                {selectedBackground && BACKGROUND_IMAGES[selectedBackground] && (
+                  <img
+                    src={BACKGROUND_IMAGES[selectedBackground]}
+                    alt="Pet background"
+                    className="absolute inset-0 w-auto h-auto object-cover"
+                  />
+                )}
+                <div className="relative z-10">
+                  <span className="text-7xl mb-2 drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)]">
+                    {currentPet ? PET_ICONS[currentPet.type] || getPetEmoji() : getPetEmoji()}
+                  </span>
+                </div>
+                <span className="relative z-10 text-sm text-text-light text-center mt-2 drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)]">
                   {getPetMoodText()}
                 </span>
               </div>

@@ -12,13 +12,48 @@ import RegisterPage from "./pages/RegisterPage.jsx";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
-import { tasksAPI } from "./services/api";
+import { tasksAPI, userAPI } from "./services/api";
 
 function App() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [taskError, setTaskError] = useState("");
+  const [selectedBackground, setSelectedBackground] = useState(null);
+  const [currentPet, setCurrentPet] = useState(null);
+
+  // Load background from localStorage on mount
+  useEffect(() => {
+    const savedBackground = localStorage.getItem("selectedBackground");
+    if (savedBackground) {
+      setSelectedBackground(savedBackground);
+    }
+  }, []);
+
+  // Handle background change and persist to localStorage
+  const handleBackgroundChange = (backgroundId) => {
+    setSelectedBackground(backgroundId);
+    if (backgroundId) {
+      localStorage.setItem("selectedBackground", backgroundId);
+    } else {
+      localStorage.removeItem("selectedBackground");
+    }
+  };
+
+  // Fetch current pet
+  async function fetchCurrentPet() {
+    if (!isAuthenticated) return;
+
+    try {
+      const response = await userAPI.getPets();
+      const pets = response.data.pets || [];
+      if (pets.length > 0) {
+        setCurrentPet(pets[0]); // Set the first pet as current
+      }
+    } catch (err) {
+      console.error("Failed to fetch pet:", err);
+    }
+  }
 
   // GET all tasks (only when authenticated)
   async function fetchTasks() {
@@ -62,10 +97,11 @@ function App() {
         console.log(`🎉 Earned ${reward} coins`);
       }
     } catch (err) {
-     console.error(err);
+      console.error(err);
       setTaskError(err.response?.data?.message || "Failed to update task.");
     }
-}
+  }
+
   // DELETE task
   async function deleteTask(id) {
     try {
@@ -77,9 +113,11 @@ function App() {
     }
   }
 
+  // Fetch tasks and pet when authenticated
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
       fetchTasks();
+      fetchCurrentPet();
     }
   }, [isAuthenticated, authLoading]);
 
@@ -124,6 +162,8 @@ function App() {
                   onCreateTask={createTask}
                   onUpdateTask={updateTask}
                   onDeleteTask={deleteTask}
+                  selectedBackground={selectedBackground}
+                  currentPet={currentPet}
                 />
               </ProtectedRoute>
             }
@@ -140,6 +180,8 @@ function App() {
                   onCreateTask={createTask}
                   onUpdateTask={updateTask}
                   onDeleteTask={deleteTask}
+                  selectedBackground={selectedBackground}
+                  currentPet={currentPet}
                 />
               </ProtectedRoute>
             }
@@ -161,8 +203,11 @@ function App() {
             path="/pet"
             element={
               <ProtectedRoute>
-                {/* 🔹 pass tasks into PetPage so it can use the time-based memo */}
-                <PetPage tasks={tasks} />
+                <PetPage 
+                  tasks={tasks}
+                  selectedBackground={selectedBackground}
+                  onBackgroundChange={handleBackgroundChange}
+                />
               </ProtectedRoute>
             }
           />

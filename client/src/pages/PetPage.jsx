@@ -9,7 +9,40 @@ const PET_ICONS = {
   penguin: "🐧",
 };
 
-function PetPage({ tasks }) {
+const BACKGROUND_IMAGES = {
+  "bg-cozy_room": "/src/images/cozy_room.png",
+  "bg-park": "/src/images/park.png",
+};
+
+// I got tired of tryna make automatic implementation work, so hardcoding atm
+const FOOD_IMAGES = {
+  "food-carrot": "/src/images/food-carrot.png",
+  "food-2": "/src/images/berry.png",
+  "food-3": "/src/images/apple.png",
+  "food-4": "/src/images/cookie.png",
+  "food-5": "/src/images/cheese.png",
+  "food-6": "/src/images/milk.png",
+  "food-7": "/src/images/fish.png",
+  "food-8": "/src/images/cracker.png",
+  "food-9": "/src/images/fruit-cup.png",
+  "food-10": "/src/images/sandwich.png",
+  "food-11": "/src/images/soup.png",
+  "food-12": "/src/images/cupcake.png",
+  "food-13": "/src/images/chips.png",
+  "food-14": "/src/images/trail-mix.png",
+  "food-15": "/src/images/ramen.png",
+  "food-16": "/src/images/pancakes.png",
+  "food-17": "/src/images/donut.png",
+  "food-18": "/src/images/golden-apple.png",
+  "food-19": "/src/images/magic-berry.png",
+  "food-20": "/src/images/fishes.png",
+  "food-21": "/src/images/star-cookie.png",
+  "food-22": "/src/images/sundae.png",
+  "food-23": "/src/images/bento.png",
+  "food-24": "/src/images/cake.png",
+};
+
+function PetPage({ tasks, selectedBackground, onBackgroundChange }) {
   const [pets, setPets] = useState([]);
   const [inventory, setInventory] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,10 +50,10 @@ function PetPage({ tasks }) {
   const [error, setError] = useState("");
   const [actionMessage, setActionMessage] = useState("");
   const [newPet, setNewPet] = useState({ name: "", type: "cat" });
+  const [activeTab, setActiveTab] = useState("food");
 
   const currentPet = pets[0] || null;
 
-  // 🔹 Time-based stats from tasks using useMemo (same idea as HomePage)
   const { completedThisWeek, streak, timePetHappiness } = useMemo(() => {
     const safeTasks = Array.isArray(tasks) ? tasks : [];
 
@@ -51,7 +84,6 @@ function PetPage({ tasks }) {
         streak++;
         checkDate.setDate(checkDate.getDate() - 1);
       } else if (i === 0) {
-        // allow “missed today but had yesterday” without killing streak at 0
         checkDate.setDate(checkDate.getDate() - 1);
       } else {
         break;
@@ -72,7 +104,6 @@ function PetPage({ tasks }) {
     return "Your study buddy is feeling neglected...";
   };
 
-  // Load pets + inventory on mount
   useEffect(() => {
     async function init() {
       try {
@@ -99,9 +130,15 @@ function PetPage({ tasks }) {
 
   const foodItems = useMemo(() => {
     if (!inventory) return [];
-    // Use food items by id prefix (food-*)
     return (inventory.items || []).filter((item) =>
       item.itemId?.startsWith("food-")
+    );
+  }, [inventory]);
+
+  const backgroundItems = useMemo(() => {
+    if (!inventory) return [];
+    return (inventory.items || []).filter((item) =>
+      item.itemId?.startsWith("bg-")
     );
   }, [inventory]);
 
@@ -129,22 +166,20 @@ function PetPage({ tasks }) {
   };
 
   const handlePlay = async (pet) => {
-  try {
-    setError("");
+    try {
+      setError("");
+      const res = await userAPI.playWithPet(pet._id);
+      const updated = res.data.pet;
 
-    // Use dedicated play endpoint; backend handles happiness, exp, level up, lastPlayed
-    const res = await userAPI.playWithPet(pet._id);
-    const updated = res.data.pet;
+      setPets((prev) => prev.map((p) => (p._id === updated._id ? updated : p)));
 
-    setPets((prev) => prev.map((p) => (p._id === updated._id ? updated : p)));
-
-    setActionMessage("🐾 You played with your pet!");
-    setTimeout(() => setActionMessage(""), 2000);
-  } catch (err) {
-    console.error("Failed to play with pet", err);
-    setError("Failed to play with pet.");
-  }
-};
+      setActionMessage("🐾 You played with your pet!");
+      setTimeout(() => setActionMessage(""), 2000);
+    } catch (err) {
+      console.error("Failed to play with pet", err);
+      setError("Failed to play with pet.");
+    }
+  };
 
   const handleFeed = async (pet, item) => {
     try {
@@ -165,6 +200,18 @@ function PetPage({ tasks }) {
       console.error("Failed to feed pet", err);
       setError("Failed to feed pet.");
     }
+  };
+
+  const handleSelectBackground = (bgId) => {
+    onBackgroundChange(bgId);
+    setActionMessage("🖼️ Background changed!");
+    setTimeout(() => setActionMessage(""), 2000);
+  };
+
+  const handleRemoveBackground = () => {
+    onBackgroundChange(null);
+    setActionMessage("🖼️ Background removed!");
+    setTimeout(() => setActionMessage(""), 2000);
   };
 
   if (loading) {
@@ -198,7 +245,6 @@ function PetPage({ tasks }) {
         )}
 
         {!currentPet ? (
-          // No pet yet → show create form
           <div className="bg-bg-card rounded-2xl shadow-[0_6px_3px_#c9c5bf] p-6 max-w-md mx-auto">
             <h2 className="text-2xl font-semibold text-text-dark mb-4 text-center">
               Create your first pet
@@ -248,13 +294,24 @@ function PetPage({ tasks }) {
           </div>
         ) : (
           <>
-            {/* Top row: pet + stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {/* Left: pet + study happiness */}
               <div className="bg-bg-card rounded-2xl shadow-[0_6px_3px_#c9c5bf] p-6 flex flex-col items-center">
-                <div className="text-7xl mb-4">
-                  {PET_ICONS[currentPet.type] || "🐾"}
+                <div className="relative w-full max-w-sm aspect-square mb-4 rounded-xl overflow-hidden">
+                  {selectedBackground && BACKGROUND_IMAGES[selectedBackground] && (
+                    <img
+                      src={BACKGROUND_IMAGES[selectedBackground]}
+                      alt="Pet background"
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  )}
+                  
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-9xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)]">
+                      {PET_ICONS[currentPet.type] || "🐾"}
+                    </div>
+                  </div>
                 </div>
+
                 <h2 className="text-2xl font-bold text-text-dark mb-1">
                   {currentPet.name}
                 </h2>
@@ -262,7 +319,6 @@ function PetPage({ tasks }) {
                   {currentPet.type}
                 </p>
 
-                {/* 🔹 Task-based (time memo) happiness from tasks */}
                 <div className="w-full max-w-sm mb-4">
                   <div className="flex justify-between text-sm text-text-dark mb-1">
                     <span>Study Happiness</span>
@@ -298,95 +354,177 @@ function PetPage({ tasks }) {
                 )}
               </div>
 
-              {/* Right: backend stats (level / exp / DB happiness) */}
               <div className="bg-bg-card rounded-2xl shadow-[0_6px_3px_#c9c5bf] p-6">
-                <h3 className="text-xl font-semibold text-text-dark mb-4">
-                  Pet Stats
-                </h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-text-dark">
+                    Inventory
+                  </h3>
+                  <div className="flex items-center gap-2 text-sm text-text-light">
+                    <span>Coins:</span>
+                    <img
+                      src="/src/images/Coins.png"
+                      alt="Coin"
+                      className="coin-icon"
+                    />
+                    <span>{inventory?.coins ?? 0}</span>
+                  </div>
+                </div>
 
-                <StatBar
-                  label="Level"
-                  value={currentPet.level || 1}
-                  max={10}
-                  text={`${currentPet.level || 1}`}
-                />
+                <div className="flex gap-2 mb-4 border-b-2 border-primary-light">
+                  <button
+                    onClick={() => setActiveTab("food")}
+                    className={`px-4 py-2 font-semibold transition-all ${
+                      activeTab === "food"
+                        ? "text-primary border-b-2 border-primary -mb-0.5"
+                        : "text-text-light hover:text-text-dark"
+                    }`}
+                  >
+                    Food
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("backgrounds")}
+                    className={`px-4 py-2 font-semibold transition-all ${
+                      activeTab === "backgrounds"
+                        ? "text-primary border-b-2 border-primary -mb-0.5"
+                        : "text-text-light hover:text-text-dark"
+                    }`}
+                  >
+                    Backgrounds
+                  </button>
+                </div>
 
-                <StatBar
-                  label="Experience"
-                  value={currentPet.experience || 0}
-                  max={(currentPet.level || 1) * 100}
-                  text={`${currentPet.experience || 0} / ${
-                    (currentPet.level || 1) * 100
-                  }`}
-                />
+                {activeTab === "food" && (
+                  <>
+                    {foodItems.length === 0 ? (
+                      <p className="text-text-light text-sm">
+                        You don't have any food yet. Visit the shop to buy snacks for
+                        your pet!
+                      </p>
+                    ) : (
+                      <div 
+                        className="grid grid-cols-2 gap-4 max-h-[500px] overflow-y-auto p-1" 
+                        style={{ scrollbarWidth: 'thin', scrollbarColor: '#5a86c4 #e5e7eb' }}
+                      >
+                        {foodItems.map((item) => (
+                          <div
+                            key={item.itemId}
+                            className="bg-bg rounded-xl p-4 shadow-[0_3px_2px_#c9c5bf] flex flex-col items-center text-center"
+                          >
+                            <div className="w-24 h-24 flex items-center justify-center mb-2 bg-bg-card rounded-lg overflow-hidden p-2">
+                              <img
+                                src={FOOD_IMAGES[item.itemId] || `/src/images/${item.itemId}.png`}
+                                onError={(e) => {
+                                  console.error(`Failed to load: ${e.target.src}`);
+                                  e.target.style.display = "none";
+                                }}
+                                alt={item.name}
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                            <div className="text-sm font-semibold text-text-dark mb-1">
+                              {item.name}
+                            </div>
+                            <div className="text-xs text-text-light mb-3">
+                              Qty: {item.quantity}
+                            </div>
+                            <button
+                              disabled={item.quantity <= 0}
+                              onClick={() => handleFeed(currentPet, item)}
+                              className="w-full px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary-dark transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_3px_0_#5a86c4] active:translate-y-0.5"
+                            >
+                              Feed
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
 
-                <StatBar
-                  label="Happiness"
-                  value={currentPet.happiness || 0}
-                  max={100}
-                  text={`${currentPet.happiness || 0}%`}
-                />
+                {activeTab === "backgrounds" && (
+                  <>
+                    {backgroundItems.length === 0 ? (
+                      <p className="text-text-light text-sm">
+                        You don't have any backgrounds yet. Visit the shop to buy
+                        backgrounds for your pet!
+                      </p>
+                    ) : (
+                      <div 
+                        className="max-h-[500px] overflow-y-auto p-2" 
+                        style={{ scrollbarWidth: 'thin', scrollbarColor: '#5a86c4 #e5e7eb' }}
+                      >
+                        {selectedBackground && (
+                          <button
+                            onClick={handleRemoveBackground}
+                            className="w-full mb-4 px-4 py-2 bg-primary text-white rounded-lg text-sm transition-all   font-semibold hover:bg-primary-dark shadow-[0_4px_0_#5a86c4] active:translate-y-0.5"
+                          >
+                            Remove Background
+                          </button>
+                        )}
+                        <div className="grid grid-cols-2 gap-4">
+                          {backgroundItems.map((item) => (
+                            <div
+                              key={item.itemId}
+                              className={`bg-bg rounded-xl p-4 shadow-[0_3px_2px_#c9c5bf] flex flex-col items-center text-center cursor-pointer transition-all ${
+                                selectedBackground === item.itemId
+                                  ? "ring-4 ring-primary"
+                                  : "hover:shadow-[0_4px_3px_#b5b1ab]"
+                              }`}
+                              onClick={() => handleSelectBackground(item.itemId)}
+                            >
+                              <div className="w-full aspect-square flex items-center justify-center mb-3 bg-bg-card rounded-lg overflow-hidden p-2">
+                                <img
+                                  src={BACKGROUND_IMAGES[item.itemId]}
+                                  onError={(e) => (e.target.style.display = "none")}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover rounded-lg"
+                                />
+                              </div>
+                              <div className="text-sm font-semibold text-text-dark mb-1">
+                                {item.name}
+                              </div>
+                              {selectedBackground === item.itemId && (
+                                <div className="text-xs text-primary font-semibold">
+                                  ✓ Active
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
 
-            {/* Food inventory */}
             <div className="bg-bg-card rounded-2xl shadow-[0_6px_3px_#c9c5bf] p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-text-dark">
-                  Food Inventory
-                </h3>
-                <div className="flex items-center gap-2 text-sm text-text-light">
-                  <span>Coins:</span>
-                  <img
-                    src="/src/images/Coins.png"
-                    alt="Coin"
-                    className="coin-icon"
-                  />
-                  <span>{inventory?.coins ?? 0}</span>
-                </div>
-              </div>
+              <h3 className="text-xl font-semibold text-text-dark mb-4">
+                Pet Stats
+              </h3>
 
-              {foodItems.length === 0 ? (
-                <p className="text-text-light text-sm">
-                  You don’t have any food yet. Visit the shop to buy snacks for
-                  your pet!
-                </p>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {foodItems.map((item) => (
-                    <div
-                      key={item.itemId}
-                      className="bg-bg rounded-xl p-3 shadow-[0_3px_2px_#c9c5bf] flex flex-col items-center text-center"
-                    >
-                      <div className="w-14 h-14 flex items-center justify-center mb-2 bg-bg-card rounded-lg overflow-hidden">
-                        {/* reuse shop images naming */}
-                        <img
-                          src={`/src/images/${item.itemId.replace(
-                            "food-",
-                            ""
-                          )}.png`}
-                          onError={(e) => (e.target.style.display = "none")}
-                          alt={item.name}
-                          className="w-12 h-12 object-contain"
-                        />
-                      </div>
-                      <div className="text-sm font-semibold text-text-dark">
-                        {item.name}
-                      </div>
-                      <div className="text-xs text-text-light mb-2">
-                        Qty: {item.quantity}
-                      </div>
-                      <button
-                        disabled={item.quantity <= 0}
-                        onClick={() => handleFeed(currentPet, item)}
-                        className="mt-auto px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-primary-dark transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Feed
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <StatBar
+                label="Level"
+                value={currentPet.level || 1}
+                max={10}
+                text={`${currentPet.level || 1}`}
+              />
+
+              <StatBar
+                label="Experience"
+                value={currentPet.experience || 0}
+                max={(currentPet.level || 1) * 100}
+                text={`${currentPet.experience || 0} / ${
+                  (currentPet.level || 1) * 100
+                }`}
+              />
+
+              <StatBar
+                label="Happiness"
+                value={currentPet.happiness || 0}
+                max={100}
+                text={`${currentPet.happiness || 0}%`}
+              />
             </div>
           </>
         )}

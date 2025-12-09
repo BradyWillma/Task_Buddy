@@ -28,11 +28,11 @@ const ALL_ITEMS = [
     rarity: "rare",
   },
   {
-    id: "food-1",
+    id: "food-carrot",
     name: "Carrot Stick",
     category: "Food",
     price: 20,
-    image: "/src/images/carrot.png",
+    image: "/src/images/food-carrot.png",
     rarity: "common",
   },
   {
@@ -228,19 +228,19 @@ const ALL_ITEMS = [
     rarity: "common",
   },
   {
-    id: "bg-room",
+    id: "bg-cozy_room",
     name: "Cozy Room",
     category: "Backgrounds",
     price: 280,
-    image: "/src/images/bedroom.png",
+    image: "/src/images/cozy_room.png",
     rarity: "rare",
   },
   {
-    id: "bg-forest",
-    name: "Forest Background",
+    id: "bg-park",
+    name: "Park",
     category: "Backgrounds",
     price: 300,
-    image: "/src/images/forest.png",
+    image: "/src/images/park.png",
     rarity: "epic",
   },
 ];
@@ -429,7 +429,7 @@ export default function ShopPage() {
             return (
               <div
                 key={item.id}
-                className="bg-bg-card rounded-xl p-4 shadow-[0_6px_3px_#c9c5bf] flex flex-col items-center transition"
+                className="bg-bg-card rounded-xl p-6 shadow-[0_6px_3px_#c9c5bf] flex flex-col items-center transition"
               >
                 <div className="w-20 h-20 flex items-center justify-center mb-3 bg-bg rounded-lg overflow-hidden">
                   <img src={item.image} alt={item.name} className="w-16 h-16" />
