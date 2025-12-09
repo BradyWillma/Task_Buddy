@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Task = require("../models/Task");
+const Inventory = require("../models/Inventory");
 const { protect } = require("../middleware/auth");
 
 // Apply authentication to all task routes
@@ -43,15 +44,25 @@ router.post("/", async (req, res) => {
 // PUT update a task
 router.put("/:id", async (req, res) => {
   try {
+
+    const taskId = req.params.id;
+
+    if (!taskId || taskId === "undefined") {
+      console.error("Task update called with invalid id:", taskId);
+      return res.status(400).json({ message: "Invalid task id" });
+    }
+
     const task = await Task.findOne({
       _id: req.params.id,
       userId: req.user._id,
     });
 
+
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
     }
 
+    const wasCompleted = task.completed;
     const { title, description, deadline, completed } = req.body;
 
     if (title !== undefined) task.title = title;
@@ -60,13 +71,24 @@ router.put("/:id", async (req, res) => {
     if (completed !== undefined) task.completed = completed;
 
     await task.save();
-    res.json(task);
+
+    let reward = 0;
+
+    if (!wasCompleted && completed === true) {
+      reward = 10; 
+      const inventory = await Inventory.findOne({ userId: req.user._id });
+      if (inventory) {
+        inventory.coins += reward;
+        await inventory.save();
+      }
+    }
+
+    res.json({ task, reward });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
-
 // DELETE a task
 router.delete("/:id", async (req, res) => {
   try {

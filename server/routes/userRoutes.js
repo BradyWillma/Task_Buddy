@@ -36,6 +36,20 @@ router.get("/inventory", protect, async (req, res) => {
 router.post("/inventory/item", protect, async (req, res) => {
   const { itemId, name, quantity = 1, type, description } = req.body;
 
+  const qty = Number(quantity);
+  if (!itemId || !name) {
+    return res.status(400).json({
+      success: false,
+      message: "itemId and name are required",
+    });
+  }
+  if (!Number.isFinite(qty)) {
+    return res.status(400).json({
+      success: false,
+      message: "Quantity must be a valid number",
+    });
+  }
+
   try {
     let inventory = await Inventory.findOne({ userId: req.user._id });
 
@@ -51,7 +65,7 @@ router.post("/inventory/item", protect, async (req, res) => {
 
     if (existingItem) {
       // Update quantity (can be + or -)
-      existingItem.quantity += quantity;
+      existingItem.quantity += qty;
 
       // Remove item if quantity is zero or below
       if (existingItem.quantity <= 0) {
@@ -61,7 +75,7 @@ router.post("/inventory/item", protect, async (req, res) => {
       }
     } else {
       // No existing item; only allow creation if quantity > 0
-      if (quantity <= 0) {
+      if (qty <= 0) {
         return res.status(400).json({
           success: false,
           message: "Cannot decrement item that is not in inventory",
@@ -72,7 +86,7 @@ router.post("/inventory/item", protect, async (req, res) => {
         itemId,
         name,
         description,
-        quantity,
+        quantity: qty,
         type,
       });
     }
@@ -92,11 +106,20 @@ router.post("/inventory/item", protect, async (req, res) => {
   }
 });
 
+
 // PUT /api/user/inventory/coins
 // Updates user's coins
 // private
 router.put("/inventory/coins", protect, async (req, res) => {
   const { amount } = req.body;
+
+  const parsedAmount = Number(amount);
+  if (!Number.isFinite(parsedAmount)) {
+    return res.status(400).json({
+      success: false,
+      message: "Amount must be a valid number",
+    });
+  }
 
   try {
     const inventory = await Inventory.findOne({ userId: req.user._id });
@@ -108,7 +131,7 @@ router.put("/inventory/coins", protect, async (req, res) => {
       });
     }
 
-    inventory.coins += amount;
+    inventory.coins += parsedAmount;
     if (inventory.coins < 0) inventory.coins = 0;
 
     await inventory.save();
@@ -315,6 +338,46 @@ router.post("/pets/:petId/feed", protect, async (req, res) => {
   }
 });
 
+router.post("/pets/:petId/play", protect, async (req, res) => {
+  try {
+    const pet = await Pet.findOne({
+      _id: req.params.petId,
+      userId: req.user._id,
+    });
 
+    if (!pet) {
+      return res.status(404).json({
+        success: false,
+        message: "Pet not found",
+      });
+    }
+
+    // Simple play effects: boost happiness + experience and update lastPlayed
+    const happinessGain = 10;
+    const expGain = 20;
+
+    pet.lastPlayed = new Date();
+    pet.happiness = Math.min(100, (pet.happiness || 0) + happinessGain);
+    pet.experience = (pet.experience || 0) + expGain;
+
+    // Allow multiple level-ups if experience is large
+    if (typeof pet.checkLevelUp === "function") {
+      while (pet.checkLevelUp()) {}
+    }
+
+    await pet.save();
+
+    res.json({
+      success: true,
+      pet,
+    });
+  } catch (error) {
+    console.error("Play with pet error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error playing with pet",
+    });
+  }
+});
 
 module.exports = router;

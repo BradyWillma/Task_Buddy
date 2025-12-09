@@ -51,15 +51,21 @@ function App() {
 
   // PUT update task
   async function updateTask(id, updates) {
+    console.log("updateTask called with id:", id, "updates:", updates);
     try {
       const response = await tasksAPI.updateTask(id, updates);
-      setTasks((prev) => prev.map((t) => (t._id === id ? response.data : t)));
+      const { task, reward } = response.data;
+
+      setTasks((prev) => prev.map((t) => (t._id === id ? task : t)));
+
+      if (reward > 0) {
+        console.log(`🎉 Earned ${reward} coins`);
+      }
     } catch (err) {
-      console.error(err);
+     console.error(err);
       setTaskError(err.response?.data?.message || "Failed to update task.");
     }
-  }
-
+}
   // DELETE task
   async function deleteTask(id) {
     try {

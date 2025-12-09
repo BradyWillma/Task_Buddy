@@ -129,26 +129,22 @@ function PetPage({ tasks }) {
   };
 
   const handlePlay = async (pet) => {
-    try {
-      setError("");
-      // Just add some experience & update lastPlayed; backend will handle level up and XP rollover
-      const newExperience = (pet.experience || 0) + 20;
-      const res = await userAPI.updatePet(pet._id, {
-        happiness: Math.min(100, (pet.happiness || 0) + 10),
-        experience: newExperience,
-        lastPlayed: new Date(),
-      });
+  try {
+    setError("");
 
-      const updated = res.data.pet;
-      setPets((prev) => prev.map((p) => (p._id === updated._id ? updated : p)));
+    // Use dedicated play endpoint; backend handles happiness, exp, level up, lastPlayed
+    const res = await userAPI.playWithPet(pet._id);
+    const updated = res.data.pet;
 
-      setActionMessage("🐾 You played with your pet!");
-      setTimeout(() => setActionMessage(""), 2000);
-    } catch (err) {
-      console.error("Failed to play with pet", err);
-      setError("Failed to play with pet.");
-    }
-  };
+    setPets((prev) => prev.map((p) => (p._id === updated._id ? updated : p)));
+
+    setActionMessage("🐾 You played with your pet!");
+    setTimeout(() => setActionMessage(""), 2000);
+  } catch (err) {
+    console.error("Failed to play with pet", err);
+    setError("Failed to play with pet.");
+  }
+};
 
   const handleFeed = async (pet, item) => {
     try {
