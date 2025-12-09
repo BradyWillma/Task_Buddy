@@ -410,8 +410,8 @@ export default function ShopPage() {
                 className={
                   "px-3 py-1.5 rounded-full text-sm border transition " +
                   (isActive
-                    ? "bg-primary bg-primary shadow-[0_6px_0_#5a86c4] text-white border-primary shadow transition-all hover:scale-110 hover:bg-primary-dark active:translate-y-0.5"
-                    : "bg-bg-card bg-primary shadow-[0_6px_0_#c9c5bf] text-dark border-primary-light hover:bg-primary-light/50 shadow transition-all hover:scale-110 hover:bg-primary-dark active:translate-y-0.5")
+                    ? "bg-primary shadow-[0_6px_0_#5a86c4] text-white border-primary transition-all hover:scale-110 hover:bg-primary-dark active:translate-y-0.5"
+                    : "bg-bg-card shadow-[0_6px_0_#c9c5bf] text-dark border-primary-light hover:bg-primary-light/50 transition-all hover:scale-110 active:translate-y-0.5")
                 }
               >
                 {cat}

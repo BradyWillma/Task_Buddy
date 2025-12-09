@@ -42,7 +42,7 @@ const FOOD_IMAGES = {
   "food-24": "/src/images/cake.png",
 };
 
-function PetPage({ tasks, selectedBackground, onBackgroundChange }) {
+function PetPage({ tasks, selectedBackground, onBackgroundChange, onPetUpdate }) {
   const [pets, setPets] = useState([]);
   const [inventory, setInventory] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -157,6 +157,9 @@ function PetPage({ tasks, selectedBackground, onBackgroundChange }) {
       setNewPet({ name: "", type: "cat" });
       setActionMessage("🎉 Pet created!");
       setTimeout(() => setActionMessage(""), 2000);
+      
+      // Notify parent to refresh pet
+      if (onPetUpdate) onPetUpdate();
     } catch (err) {
       console.error("Failed to create pet", err);
       setError("Failed to create pet.");
@@ -370,24 +373,26 @@ function PetPage({ tasks, selectedBackground, onBackgroundChange }) {
                   </div>
                 </div>
 
-                <div className="flex gap-2 mb-4 border-b-2 border-primary-light">
+                <div className="flex gap-2 mb-4">
                   <button
                     onClick={() => setActiveTab("food")}
-                    className={`px-4 py-2 font-semibold transition-all ${
-                      activeTab === "food"
-                        ? "text-primary border-b-2 border-primary -mb-0.5"
-                        : "text-text-light hover:text-text-dark"
-                    }`}
+                    className={
+                      "px-3 py-1.5 rounded-full text-sm border transition " +
+                      (activeTab === "food"
+                        ? "bg-primary shadow-[0_6px_0_#5a86c4] text-white border-primary transition-all hover:scale-110 hover:bg-primary-dark active:translate-y-0.5"
+                        : "bg-bg-card shadow-[0_6px_0_#c9c5bf] text-dark border-primary-light hover:bg-primary-light/50 transition-all hover:scale-110 active:translate-y-0.5")
+                    }
                   >
                     Food
                   </button>
                   <button
                     onClick={() => setActiveTab("backgrounds")}
-                    className={`px-4 py-2 font-semibold transition-all ${
-                      activeTab === "backgrounds"
-                        ? "text-primary border-b-2 border-primary -mb-0.5"
-                        : "text-text-light hover:text-text-dark"
-                    }`}
+                    className={
+                      "px-3 py-1.5 rounded-full text-sm border transition " +
+                      (activeTab === "backgrounds"
+                        ? "bg-primary shadow-[0_6px_0_#5a86c4] text-white border-primary transition-all hover:scale-110 hover:bg-primary-dark active:translate-y-0.5"
+                        : "bg-bg-card shadow-[0_6px_0_#c9c5bf] text-dark border-primary-light hover:bg-primary-light/50 transition-all hover:scale-110 active:translate-y-0.5")
+                    }
                   >
                     Backgrounds
                   </button>
