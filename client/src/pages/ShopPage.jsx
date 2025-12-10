@@ -4,30 +4,6 @@ import { userAPI } from "../services/api";
 
 const ALL_ITEMS = [
   {
-    id: "hat-1",
-    name: "Blue Beanie",
-    category: "Clothes",
-    price: 120,
-    image: "/src/images/hat-1.png",
-    rarity: "common",
-  },
-  {
-    id: "bow-1",
-    name: "Pink Bow",
-    category: "Clothes",
-    price: 150,
-    image: "/src/images/bow-1.png",
-    rarity: "rare",
-  },
-  {
-    id: "scarf-1",
-    name: "Cozy Scarf",
-    category: "Clothes",
-    price: 200,
-    image: "/src/images/scarf.png",
-    rarity: "rare",
-  },
-  {
     id: "food-carrot",
     name: "Carrot Stick",
     category: "Food",
@@ -228,11 +204,19 @@ const ALL_ITEMS = [
     rarity: "common",
   },
   {
+    id: "bg-backyard",
+    name: "Backyard Background",
+    category: "Backgrounds",
+    price: 100,
+    image: "/src/images/backyard-sqr.png",
+    rarity: "commen",
+  },
+  {
     id: "bg-cozy_room",
     name: "Cozy Room",
     category: "Backgrounds",
     price: 280,
-    image: "/src/images/cozy_room.png",
+    image: "/src/images/bedroom.png",
     rarity: "rare",
   },
   {
@@ -240,12 +224,13 @@ const ALL_ITEMS = [
     name: "Park",
     category: "Backgrounds",
     price: 300,
-    image: "/src/images/park.png",
+    image: "/src/images/forest.png",
     rarity: "epic",
   },
+  
 ];
 
-const CATEGORIES = ["All", "Clothes", "Food", "Accessories", "Backgrounds"];
+const CATEGORIES = ["All", "Food", "Backgrounds"];
 
 export default function ShopPage() {
   const [inventory, setInventory] = useState(null);
