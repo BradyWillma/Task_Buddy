@@ -2,12 +2,12 @@
 
 A full-stack productivity web app that turns your to-do list into a virtual pet game.
 
-- ✅ Track tasks with deadlines, completion state, and a calendar view  
-- ✅ Keep a streak and see weekly progress  
-- ✅ Earn and spend coins in a shop  
-- ✅ Feed and play with a virtual pet whose stats are stored in MongoDB  
+- Track tasks with deadlines, completion state, and a calendar view  
+- Keep a streak and see weekly progress  
+- Earn and spend coins in a shop  
+- Feed and play with a virtual pet whose stats are stored in MongoDB  
 
-This project was built for **[COURSE / PROJECT NAME]** as a MERN-stack final project.
+This project was built for **CS_2830 Web Development** as a MERN-stack final project.
 
 ---
 
@@ -165,5 +165,13 @@ node seed.js
     - MONGO_URI=your_mongodb_connection_string
     - JWT_SECRET=your_secret_key
     - JWT_EXPIRE=7d
-    - PORT=5001
+    - PORT=5001 | Match this to your API Port! Found within client/src/services/api.js
+
+## Package installations
+
+**client**
+npm install bcryptjs jsonwebtoken express-validator cookie-parser
+
+**server**
+npm install axios
 
