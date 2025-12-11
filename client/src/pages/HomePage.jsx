@@ -12,7 +12,7 @@ const PET_ICONS = {
 const BACKGROUND_IMAGES = {
   "bg-cozy_room": "/src/images/cozy_room.png",
   "bg-park": "/src/images/park.png",
-  "bg-backyard": "/src/images/backyard-sqr.png",
+  "bg-backyard": "/src/images/backyard.png",
 };
 
 function HomePage({
