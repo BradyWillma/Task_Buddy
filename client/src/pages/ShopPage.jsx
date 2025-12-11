@@ -205,18 +205,18 @@ const ALL_ITEMS = [
   },
   {
     id: "bg-backyard",
-    name: "Backyard Background",
+    name: "Backyard",
     category: "Backgrounds",
     price: 100,
     image: "/src/images/backyard-sqr.png",
-    rarity: "commen",
+    rarity: "common",
   },
   {
     id: "bg-cozy_room",
     name: "Cozy Room",
     category: "Backgrounds",
     price: 280,
-    image: "/src/images/bedroom.png",
+    image: "/src/images/cozy_room.png",
     rarity: "rare",
   },
   {
@@ -224,7 +224,7 @@ const ALL_ITEMS = [
     name: "Park",
     category: "Backgrounds",
     price: 300,
-    image: "/src/images/forest.png",
+    image: "/src/images/park.png",
     rarity: "epic",
   },
   
