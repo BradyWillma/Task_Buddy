@@ -1,6 +1,13 @@
 # Presentation Youtube Link
 https://www.youtube.com/watch?v=RSVRigj2JOg
 
+# Team Members/Roles
+
+Brady - Backend and DB
+Jared - Frontend setup and pages
+Aimee - Frontend styling and pet/shop page
+David - Frontend and user auth
+
 # Task Buddy / Study Buddy
 
 A full-stack productivity web app that turns your to-do list into a virtual pet game.
@@ -19,7 +26,7 @@ This project was built for **CS_2830 Web Development** as a MERN-stack final pro
 **Frontend**
 - React + Vite  
 - React Router  
-- Axios  
+- Axios
 - Tailwind-style utility classes + custom CSS  
 - Context API for authentication  
 
